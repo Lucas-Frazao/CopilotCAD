@@ -1,0 +1,346 @@
+# CopilotCAD — Product Vision
+
+## One-line product promise
+
+**CopilotCAD lets you author hardware in English and compile it into structured, editable CAD.**
+
+Not prompt-to-shape. Intent-to-CAD.
+
+---
+
+## Product definition
+
+CopilotCAD is a local-first, chat-native CAD IDE for solo engineers and students building hardware projects. It combines a VS Code-inspired workspace, a strict intermediate representation (Intent IR) for all write operations, and a Part-Driven Design (PDD) methodology layer that keeps intent, interfaces, assumptions, and geometry connected instead of scattering them across disconnected files and tools.
+
+Local-first means files live on disk, no cloud is required to work, and there is no cloud sync option. The project is always owned by the user on their own machine.
+
+The product is not positioned as "magic text-to-CAD." It is positioned as an engineering authoring environment where English is the front-end language, but geometry creation only happens after the request has been compiled into a strict schema capturing intent, assumptions, constraints, interfaces, and modeling steps.
+
+---
+
+## Why CopilotCAD should exist
+
+Traditional CAD workflows are strong at geometry creation but weak at preserving intent, assumptions, interfaces, manufacturing context, and traceability in a way that is easy for solo builders and AI systems to use consistently.
+
+PDD addresses this by treating each part as an intent contract containing:
+
+- Purpose
+- Functional requirements
+- Physical and logical interfaces
+- Constraints
+- Material and manufacturing assumptions
+- Assembly and relation context
+- Validation criteria
+- Revision and maturity status
+
+This makes CopilotCAD more than a geometry editor. It becomes a hardware IDE where the part is the core engineering object, the workspace is the project container, and the AI operates as a constrained assistant over structured artifacts rather than a freeform shape generator.
+
+---
+
+## Target user
+
+The primary user for v1 is a **solo engineer or student building hardware projects independently**.
+
+The product is not initially aimed at large teams, enterprise CAD departments, or production machine shops. The first design center is the technically ambitious individual builder who wants a more structured and AI-native way to create hardware than today's ribbon-heavy CAD interfaces.
+
+---
+
+## Product thesis
+
+CopilotCAD is built on six core beliefs:
+
+1. **English should be the front-end language** for hardware authoring, but only when backed by strict structured representations.
+2. **Every part should be a first-class engineering object**, not just a geometry file.
+3. **PDD should always be suggested** because it improves structure, reuse, traceability, manufacturability, and AI usefulness — but it should never be mandatory.
+4. **The user should own the project locally**, with no cloud requirement and no sync dependency.
+5. **Chat should be the only write interface**, while the rest of the UI supports inspection, context selection, review, and navigation.
+6. **AI must operate like a compiler pipeline** with explicit assumptions and visible diffs, not like a magic generator.
+
+---
+
+## User experience vision
+
+A user launches CopilotCAD and sees an IDE closely resembling VS Code:
+
+- **Left panel**: project explorer (files/folders) with tabbed panels for Parts, Interfaces, Problems, and History.
+- **Center panel**: 3D model viewport for rendering, navigation, inspection, and selection.
+- **Right panel**: chat interface — the sole write surface.
+
+On first launch of a new project, the chat panel displays:
+
+> "What to do first? Ask about this CAD model or we can start creating one."
+
+No wizard. No forms. Everything through conversation.
+
+The user describes what they want to build in plain English. CopilotCAD:
+
+1. Asks only 2–3 blocking questions when necessary.
+2. Proceeds with the rest as explicit, visible assumptions.
+3. Compiles the request into a strict Intent IR.
+4. Executes the IR through the geometry kernel.
+5. Updates the project files, history, and viewport.
+6. Shows a diff summary in chat.
+7. Flags any problems in the Problems panel.
+
+If the request appears complex or system-like, CopilotCAD suggests PDD and offers slash-command shortcuts. If the request is simple, it proceeds directly while still maintaining assumptions and traceability.
+
+---
+
+## Interface model
+
+| Panel | Role |
+|---|---|
+| Explorer | Files and folders only |
+| Parts panel | Structured list of project parts and maturity status |
+| Interfaces panel | First-class interface objects and their status |
+| History panel | Feature history and action/chat history (two tabs) |
+| Problems panel | Actionable issues affecting correctness or progress |
+| Viewport | 3D geometry rendering, navigation, inspection, selection |
+| Chat panel | The only place where write actions originate |
+
+The viewport allows navigation, inspection, and geometry selection to provide context to chat. Direct geometry editing is not allowed. All design changes are authored through language and compiled through structured intent.
+
+---
+
+## Authoring model
+
+CopilotCAD uses English as the user-facing authoring language, but all write operations must compile into a strict **Intent IR** object before any geometry or project files are changed.
+
+Intent IR captures:
+
+- User intent type (part create, part edit, assembly create, etc.)
+- Target part or assembly
+- Blocking questions and their answers
+- Assumptions (scope, source, importance, status)
+- Constraints (dimensions, material, process, tolerance, interfaces)
+- Ordered modeling steps (op type + parameters)
+- Traceability links (spec, requirements, architecture elements)
+
+This compiler-like model ensures geometry changes are inspectable, reproducible, and tied to engineering intent.
+
+---
+
+## PDD strategy
+
+PDD is always suggested but never required. This creates two interaction paths:
+
+**Lightweight path**
+- Simple single-part requests proceed directly after blocking questions and explicit assumptions.
+
+**PDD-guided path**
+- Complex parts or small systems trigger suggestions to scaffold Product Vision, Constitution, System Architecture, Manufacturing Stack, Part Specs, and interfaces before geometry work proceeds.
+
+The goal is always to aim the user toward PDD because it produces better, more traceable, more reusable design artifacts.
+
+---
+
+## MVP scope
+
+### In scope for MVP
+
+- Local-first desktop project workflow, no cloud.
+- VS Code-like workspace UI: explorer, viewport, chat.
+- Chat-first authoring only.
+- Strict Intent IR compilation before all write operations.
+- PDD suggestion engine.
+- Slash commands: `/vision`, `/constitution`, `/architecture`, `/manufacturing`, `/part`, `/interface`, `/plan`, `/review`, `/release`, `/export`, `/assumptions`, `/history`.
+- Single-part modeling.
+- Very small assemblies (2–5 parts).
+- Explicit interface objects.
+- Part folders with: `part.cad`, `spec.yaml`, `assumptions.yaml`, `history.json`, `interfaces/`.
+- STEP and IGES export.
+- Proprietary `.cad` format for native workspace persistence.
+- Assumption tracking, diff summaries, and visible history.
+- Problems panel with 7 MVP problem types.
+
+### Out of scope for MVP
+
+- Full CAM generation.
+- Full 2D drawing workflow.
+- Advanced simulation or FEA.
+- Large assemblies (more than 5 parts).
+- Cloud sync or collaboration.
+- Plugin or extension marketplace.
+- Advanced tolerance analysis.
+- Full release governance workflows.
+- BOM generation.
+- Local LLM support (stub only).
+
+---
+
+## Definition of MVP success
+
+MVP v1 is successful when a solo engineer can:
+
+1. Start a local CopilotCAD project.
+2. Describe a part or small hardware concept in English.
+3. Have the system suggest and scaffold PDD when useful.
+4. Create one or more parametric parts and a very small assembly through chat.
+5. Inspect and refine the result through explicit assumptions and diffs.
+6. Export parts to STEP or IGES.
+7. Preserve a full local `.cad` workspace with traceable docs, part specs, interfaces, and history.
+
+---
+
+## Modeling vocabulary (MVP)
+
+The minimum modeling vocabulary for MVP:
+
+**Sketch**
+- `sketch_rectangle`
+- `sketch_circle`
+
+**Solid creation and removal**
+- `extrude`
+- `cut_extrude`
+- `revolve`
+
+**Holes**
+- `hole_simple`
+- `hole_pattern_corners`
+
+**Edge operations**
+- `fillet`
+- `chamfer`
+
+**Patterns and mirror**
+- `pattern_linear`
+- `pattern_circular`
+- `mirror`
+
+**Other**
+- `shell`
+- `offset_face`
+- `create_plane`
+- `create_axis`
+- `create_point`
+
+**Assembly**
+- `mate_fix`
+- `mate_coincident`
+- `mate_concentric`
+- `mate_distance`
+
+---
+
+## Project and file structure
+
+Every CopilotCAD project is a local folder:
+
+```
+project-root/
+├── copilotcad.json            # Root manifest
+├── docs/                      # Narrative PDD documents (Markdown)
+├── parts/
+│   └── <part-id>/
+│       ├── part.cad           # Native format
+│       ├── spec.yaml          # PDD Part Spec
+│       ├── assumptions.yaml   # Structured assumptions
+│       ├── history.json       # Action and feature history
+│       └── interfaces/        # Interface definitions
+├── assemblies/                # Assembly YAML files
+└── exports/                   # STEP and IGES outputs
+```
+
+Human-facing docs use Markdown. Machine-structured config and spec files use YAML or JSON.
+
+---
+
+## Native `.cad` format
+
+The `.cad` file is not a shape container. It stores:
+
+- Structured parametric history (the feature tree)
+- References to sibling PDD artifacts (spec, assumptions, history)
+- Interface links
+- Geometry state cache
+
+STEP and IGES are export targets. `.cad` is the local-first authoring format.
+
+---
+
+## Problems panel taxonomy (MVP)
+
+| Problem type | Trigger |
+|---|---|
+| Missing required input | Blocking info is absent and IR cannot proceed |
+| Unresolved assumption | High-importance assumption still proposed |
+| Geometry generation failure | Kernel step returned error |
+| Interface conflict | Mating interfaces are incompatible |
+| Invalid mate / assembly error | Assembly constraint cannot be satisfied |
+| Manufacturing rule warning | Design violates declared process limits |
+| Traceability gap | Part spec missing expected trace links |
+
+---
+
+## AI trust and autonomy model
+
+### Low-risk actions (execute immediately)
+- Create new feature on existing body.
+- Add or modify a single dimension or parameter.
+- Add or update assumptions.
+- Scaffold new doc files.
+
+### High-risk actions (require explicit approval)
+- Delete a part.
+- Overwrite major geometry.
+- Change interfaces used by assemblies.
+- Change manufacturing assumptions.
+- Change project units.
+- Regenerate from a fundamentally different interpretation.
+- Bulk changes across multiple parts.
+- Release or export actions.
+
+### Failure behavior
+When CopilotCAD fails, it must:
+- Explain the failure clearly.
+- Identify the blocking issue.
+- Suggest 2–3 next steps.
+- Preserve partial work.
+- Never hide failure.
+
+---
+
+## AI personality
+
+CopilotCAD's AI is adaptive but defaults to:
+
+- Concise.
+- Engineering-formal.
+- Explicit about every assumption it makes.
+- Transparent about what it does not know.
+
+It does not over-question. It asks only blocking questions, then proceeds with visible assumptions rather than interrogating the user endlessly.
+
+---
+
+## Positioning
+
+CopilotCAD is not a generic text-to-CAD tool. The product avoids:
+
+- "Turn plain English into perfect CAD" framing.
+- "Generate production-ready parts instantly" claims.
+- Any positioning that implies magic or removes engineering judgment.
+
+The correct framing:
+
+- Not prompt-to-shape.
+- Intent-to-CAD.
+- Local-first.
+- Structured and editable.
+- Traceable across parts, docs, and interfaces.
+
+The central value is not that the model generates geometry from words. The central value is that it helps author hardware in English while preserving the structure, traceability, and editability that real engineering work requires.
+
+---
+
+## Open questions for future iterations
+
+- Exact Intent IR schema (see `docs/architecture.md`).
+- Structure of `spec.yaml` and `assumptions.yaml` field-level definitions.
+- Assembly and interface schema detail.
+- Command execution pipeline from prompt to IR to geometry.
+- Review and release lifecycle in MVP.
+- Visual hierarchy and behavior of each UI panel.
+- How manufacturability warnings are surfaced without full CAM.
+- Whether `.cad` geometry cache is per-part or workspace-linked.

@@ -2,7 +2,7 @@
 
 ## One-line product promise
 
-**CopilotCAD lets you author hardware in English and compile it into structured, editable CAD.**
+**CopilotCAD lets you author hardware in English and compile it into structured, editable CAD. A cursor for CAD**
 
 Not prompt-to-shape. Intent-to-CAD.
 

@@ -26,6 +26,12 @@ def build_system_prompt() -> str:
         "- summary: short execution summary\n"
         "- target: object with optional part_id, assembly_id, doc_path\n"
         "- context, questions, assumptions, constraints, steps, links: optional (use [] or {} when empty)\n\n"
+        "assumptions[]: each item MUST be an object: "
+        '{"id": "a1", "text": "...", "scope": "part", "source": "ai", "importance": "medium", "status": "proposed"}\n'
+        "constraints: MUST be an object like "
+        '{"dimensions": {"length_mm": 100}, "material": "aluminum"} — never a list of strings.\n'
+        "links: MUST be an object like "
+        '{"spec_refs": [], "requirement_refs": [], "architecture_refs": []} — never an empty list.\n\n'
         "Each step in steps[] must have:\n"
         "- id: unique string within the IR\n"
         "- op: one of the MVP ops listed below\n"

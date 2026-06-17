@@ -10,7 +10,7 @@ from llm.adapter import LLMAdapter
 from llm.errors import LLMConfigurationError, LLMError
 from llm.prompts import build_system_prompt
 
-DEFAULT_MODEL = "claude-sonnet-4-20250514"
+DEFAULT_MODEL = "claude-sonnet-4-6"
 MODEL_ENV = "COPILOTCAD_CLAUDE_MODEL"
 API_KEY_ENV = "ANTHROPIC_API_KEY"
 

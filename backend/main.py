@@ -8,7 +8,19 @@ from typing import Any
 from jsonrpcserver import Error, InvalidParams, Success, dispatch, method
 
 from engine.executor import execute_intent_ir
+from ir.compiler import CompileError, compile_intent as run_compile_intent
 from ir.validator import IntentIRValidationError, validate_intent_ir
+from llm.claude_adapter import ClaudeAdapter
+from llm.errors import LLMConfigurationError
+
+_default_adapter: ClaudeAdapter | None = None
+
+
+def _get_claude_adapter() -> ClaudeAdapter:
+    global _default_adapter
+    if _default_adapter is None:
+        _default_adapter = ClaudeAdapter()
+    return _default_adapter
 
 
 @method
@@ -28,6 +40,21 @@ def execute_intent(ir: dict[str, Any]) -> Success | Error:
         return Error(-32603, result.error or "Execution failed", result.to_dict())
 
     return Success(result.to_dict())
+
+
+@method
+def compile_intent(message: str, context: dict[str, Any] | None = None) -> Success | Error:
+    try:
+        adapter = _get_claude_adapter()
+    except LLMConfigurationError as exc:
+        return Error(-32603, str(exc), {"error_type": "configuration"})
+
+    try:
+        intent = run_compile_intent(message, adapter, context)
+    except CompileError as exc:
+        return Error(-32603, exc.message, exc.to_dict())
+
+    return Success(intent.model_dump(by_alias=True))
 
 
 def main() -> None:

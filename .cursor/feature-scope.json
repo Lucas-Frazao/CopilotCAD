@@ -1,6 +1,9 @@
 {
-  "feature": null,
-  "allowed_prefixes": [],
+  "feature": "F-008",
+  "allowed_prefixes": [
+    "frontend/",
+    "specs/"
+  ],
   "blocked_prefixes": ["docs/feature_roadmap.md", "docs/architecture.md"],
-  "notes": "Set feature (e.g. F-004) and allowed_prefixes when implementing a scoped feature. Empty allowed_prefixes = no path restriction."
+  "notes": "F-008 chat panel UI; no backend changes."
 }

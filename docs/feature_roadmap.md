@@ -258,6 +258,12 @@ Implement all 12 MVP slash commands:
 **Done when:** every known failure mode produces a useful, actionable error in the chat.
 
 ---
+### F-027 — Edition and capabilities plumbing
+
+- Implement `WorkspaceManifest` with `edition` and `capabilities`.
+- Ensure new projects default to `edition: community` with conservative capability limits.
+- Expose effective capabilities to frontend via IPC so UI can adapt (e.g., warn when assembly part limit is reached).
+- No hard enforcement in MVP; this is groundwork for future Pro/Team editions.
 
 ## Out of scope for MVP (deferred)
 

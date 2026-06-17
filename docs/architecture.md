@@ -271,6 +271,28 @@ project-root/
     └── <part-id>.step
 ```
 
+### Edition and capabilities
+
+The root `copilotcad.json` file also encodes the edition and effective capabilities. This allows different distributions (Community, Pro, Team) to share the same codebase while enabling or disabling features cleanly.
+
+Example:
+
+```jsonc
+{
+  "project_name": "robot_arm_v1",
+  "version": "0.1",
+  "edition": "community",          // community | pro | team
+  "capabilities": {
+    "max_assembly_parts": 5,
+    "advanced_pdd": false,
+    "scripting": false,
+    "plugin_marketplace": false
+  }
+}
+```
+
+At MVP, these capabilities are mostly placeholders and are not strictly enforced. They exist so that Pro/Team builds and future licensing logic have a single, explicit place to read project-level feature flags.
+
 ---
 
 ## Problems engine

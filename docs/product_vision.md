@@ -334,6 +334,26 @@ The central value is not that the model generates geometry from words. The centr
 
 ---
 
+## Business model and licensing direction
+
+CopilotCAD is designed from the start to support an open-core, Red Hat–inspired business model.
+
+The long-term plan is:
+
+- **Community edition (open source)**  
+  The core CopilotCAD desktop app will be open source and free to use for solo engineers and students. It will remain local-first, with no cloud requirement and no lock-in. The Community edition will support small projects and very small assemblies and will expose a stable plugin/SDK surface so the community can extend the tool.
+
+- **Pro edition (paid, individual)**  
+  A paid Pro edition will unlock advanced capabilities for power users. Examples include larger assemblies, more advanced PDD tooling and validation, richer Problems checks, automation and scripting features, and premium integrations. Pro remains local-first and continues to use the same `.cad` project structure as Community.
+
+- **Team / Business edition (paid, organizations)**  
+  A Team/Business edition will target small companies and engineering teams. It will focus on shared templates and constitutions, shared interface libraries, organization-level policies and review flows, internal plugin distribution, and support/SLAs. The goal is to help teams standardize their hardware design process around CopilotCAD and PDD.
+
+- **Plugins, SDK, and customization services**  
+  CopilotCAD will expose a plugin SDK for adding agents and skills to the chat interface, registering new slash commands, and extending validation and Problems checks. A plugin marketplace will allow both community and commercial plugins. Revenue will come from Pro and Team subscriptions and from customization work for companies that need tailored agents, integrations, and workflows.
+
+Across all editions, CopilotCAD will keep the same core principles: local-first, user-owned data, and structured, inspectable project artifacts. Paid tiers add more scale, automation, validation, integrations, and support rather than taking away ownership or control from the user.
+
 ## Open questions for future iterations
 
 - Exact Intent IR schema (see `docs/architecture.md`).

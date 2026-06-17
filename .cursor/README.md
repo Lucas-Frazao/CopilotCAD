@@ -6,6 +6,7 @@ Project-level skills, hooks, and MCP configuration for spec-driven development o
 
 | What | How |
 |------|-----|
+| Run the full pipeline (spec → implement → next) | `/feature-pipeline-loop` — see skill for one-iteration vs unattended prompts |
 | Implement a feature | Chat: **Implement F-004** (after spec approved) or invoke skill **implement-f-feature** |
 | Run backend tests | `/verify-backend` or `.cursor/skills/verify-backend/scripts/verify-backend.ps1` |
 | Review a spec before coding | `/spec-reviewer` with feature id |

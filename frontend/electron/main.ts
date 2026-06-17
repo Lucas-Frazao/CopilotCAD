@@ -1,10 +1,11 @@
-import { app, BrowserWindow } from "electron";
+import { app, BrowserWindow, ipcMain } from "electron";
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
 
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcessWithoutNullStreams | null = null;
+let rpcIdCounter = 0;
 
 function getProjectRoot(): string {
   return path.resolve(__dirname, "..", "..");
@@ -44,13 +45,15 @@ function sendJsonRpc(
   proc: ChildProcessWithoutNullStreams,
   method: string,
   params: unknown = {},
-  id = 1,
+  id?: number,
 ): Promise<unknown> {
+  const requestId = id ?? ++rpcIdCounter;
+
   return new Promise((resolve, reject) => {
     const request =
       JSON.stringify({
         jsonrpc: "2.0",
-        id,
+        id: requestId,
         method,
         params,
       }) + "\n";
@@ -69,15 +72,18 @@ function sendJsonRpc(
           const response = JSON.parse(line) as {
             id?: number;
             result?: unknown;
-            error?: unknown;
+            error?: { code?: number; message?: string; data?: unknown };
           };
 
-          if (response.id === id) {
+          if (response.id === requestId) {
             proc.stdout.off("data", onData);
             clearTimeout(timeout);
 
             if (response.error) {
-              reject(response.error);
+              const rpcError = new Error(response.error.message ?? "JSON-RPC error");
+              (rpcError as Error & { code?: number; data?: unknown }).code = response.error.code;
+              (rpcError as Error & { data?: unknown }).data = response.error.data;
+              reject(rpcError);
             } else {
               resolve(response.result);
             }
@@ -92,7 +98,7 @@ function sendJsonRpc(
     const timeout = setTimeout(() => {
       proc.stdout.off("data", onData);
       reject(new Error("JSON-RPC request timed out"));
-    }, 10000);
+    }, 60000);
 
     proc.stdout.on("data", onData);
     proc.stdin.write(request);
@@ -100,7 +106,9 @@ function sendJsonRpc(
 }
 
 async function pingBackend(): Promise<void> {
-  backendProcess = spawnBackend();
+  if (!backendProcess) {
+    return;
+  }
 
   try {
     const result = await sendJsonRpc(backendProcess, "ping");
@@ -131,6 +139,14 @@ function createWindow(): void {
 }
 
 app.whenReady().then(async () => {
+  backendProcess = spawnBackend();
+  ipcMain.handle("copilotcad:rpc", async (_event, method: string, params: unknown) => {
+    if (!backendProcess) {
+      throw new Error("Backend process is not running");
+    }
+    return sendJsonRpc(backendProcess, method, params);
+  });
+
   await pingBackend();
   createWindow();
 });
@@ -138,6 +154,7 @@ app.whenReady().then(async () => {
 app.on("window-all-closed", () => {
   if (backendProcess) {
     backendProcess.kill();
+    backendProcess = null;
   }
 
   if (process.platform !== "darwin") {

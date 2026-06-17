@@ -1,4 +1,9 @@
-/** 3D viewport panel — placeholder for F-011. */
+/** 3D viewport panel — placeholder until F-011. */
 export default function ViewportPanel() {
-  return null;
+  return (
+    <div className="viewport-panel">
+      <div className="panel-placeholder">Viewport</div>
+      <div className="panel-body">3D geometry will appear here.</div>
+    </div>
+  );
 }

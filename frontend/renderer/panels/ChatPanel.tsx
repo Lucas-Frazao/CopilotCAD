@@ -1,7 +1,7 @@
 import { useState, type KeyboardEvent } from "react";
 
 import type { ChatMessageData, QuestionLocalState } from "../chat/chat-types";
-import { filterSlashCommands, isSlashOnlyMessage } from "../chat/chat-utils";
+import { filterSlashCommands, isSlashOnlyMessage, isConversationalMessage, CONVERSATIONAL_REPLY, formatCompileError } from "../chat/chat-utils";
 import ChatMessage from "../components/ChatMessage";
 import SlashCommandPicker from "../components/SlashCommandPicker";
 import { compileIntent, executeIntent } from "../ipc/bridge";
@@ -12,17 +12,6 @@ const WELCOME: ChatMessageData = {
   kind: "text",
   text: "What to do first? Ask about this CAD model or we can start creating one.",
 };
-
-function formatError(err: unknown): string {
-  if (err instanceof Error) {
-    const withData = err as Error & { data?: { message?: string; error_type?: string } };
-    if (withData.data?.message) {
-      return `${err.message}: ${withData.data.message}`;
-    }
-    return err.message;
-  }
-  return String(err);
-}
 
 export default function ChatPanel() {
   const [messages, setMessages] = useState<ChatMessageData[]>([WELCOME]);
@@ -90,6 +79,20 @@ export default function ChatPanel() {
       return;
     }
 
+    if (isConversationalMessage(text)) {
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: `assistant-chat-${Date.now()}`,
+          role: "assistant",
+          kind: "text",
+          text: CONVERSATIONAL_REPLY,
+        },
+      ]);
+      setSending(false);
+      return;
+    }
+
     try {
       const intent = await compileIntent(text);
       const execution = await executeIntent(intent);
@@ -110,7 +113,7 @@ export default function ChatPanel() {
           id: `assistant-error-${Date.now()}`,
           role: "assistant",
           kind: "error",
-          text: `Could not compile intent: ${formatError(err)}`,
+          text: formatCompileError(err),
         },
       ]);
     } finally {

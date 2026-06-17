@@ -5,11 +5,76 @@ import type {
   IntentIRPayload,
 } from "./types";
 
+const RPC_ERROR_PREFIX = "COPILOTCAD_RPC:";
+
 function getApi(): CopilotCADApi {
   if (typeof window === "undefined" || !window.copilotcad) {
     throw new Error("CopilotCAD IPC is only available in the Electron renderer");
   }
   return window.copilotcad;
+}
+
+function extractRpcPayload(message: string): {
+  message?: string;
+  code?: number;
+  data?: unknown;
+} | null {
+  const marker = RPC_ERROR_PREFIX;
+  const index = message.indexOf(marker);
+  if (index === -1) {
+    return null;
+  }
+
+  try {
+    return JSON.parse(message.slice(index + marker.length)) as {
+      message?: string;
+      code?: number;
+      data?: unknown;
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizeIpcError(err: unknown): Error {
+  if (err instanceof Error) {
+    const rpcPayload = extractRpcPayload(err.message);
+    if (rpcPayload) {
+      const normalized = new Error(rpcPayload.message ?? "Request failed");
+      (normalized as Error & { code?: number; data?: unknown }).code = rpcPayload.code;
+      (normalized as Error & { data?: unknown }).data = rpcPayload.data;
+      return normalized;
+    }
+
+    if (err.message.startsWith(RPC_ERROR_PREFIX)) {
+      try {
+        const payload = JSON.parse(err.message.slice(RPC_ERROR_PREFIX.length)) as {
+          message?: string;
+          code?: number;
+          data?: unknown;
+        };
+        const normalized = new Error(payload.message ?? "Request failed");
+        (normalized as Error & { code?: number; data?: unknown }).code = payload.code;
+        (normalized as Error & { data?: unknown }).data = payload.data;
+        return normalized;
+      } catch {
+        return err;
+      }
+    }
+
+    if (err.message.includes("Intent IR validation failed")) {
+      const normalized = new Error("Intent IR validation failed");
+      (normalized as Error & { data?: unknown }).data = {
+        error_type: "validation",
+        message: "Intent IR validation failed",
+      };
+      return normalized;
+    }
+
+    return err;
+  }
+
+  return new Error(String(err));
 }
 
 export async function ping(): Promise<string> {
@@ -20,7 +85,11 @@ export async function compileIntent(
   message: string,
   context?: Record<string, unknown>,
 ): Promise<CompileIntentResult> {
-  return getApi().compileIntent(message, context);
+  try {
+    return await getApi().compileIntent(message, context);
+  } catch (err) {
+    throw normalizeIpcError(err);
+  }
 }
 
 function isExecuteIntentPayload(data: unknown): data is ExecuteIntentResult {
@@ -37,11 +106,12 @@ export async function executeIntent(ir: IntentIRPayload): Promise<ExecuteIntentR
     const result = await getApi().executeIntent(ir as unknown as Record<string, unknown>);
     return normalizeExecuteResult(result);
   } catch (err) {
-    const withData = err as Error & { data?: unknown };
+    const normalized = normalizeIpcError(err);
+    const withData = normalized as Error & { data?: unknown };
     if (isExecuteIntentPayload(withData.data)) {
       return normalizeExecuteResult(withData.data);
     }
-    throw err;
+    throw normalized;
   }
 }
 

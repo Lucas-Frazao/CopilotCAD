@@ -28,8 +28,9 @@ def build_system_prompt() -> str:
         "- context, questions, assumptions, constraints, steps, links: optional (use [] or {} when empty)\n\n"
         "assumptions[]: each item MUST be an object: "
         '{"id": "a1", "text": "...", "scope": "part", "source": "ai", "importance": "medium", "status": "proposed"}\n'
-        "constraints: MUST be an object like "
-        '{"dimensions": {"length_mm": 100}, "material": "aluminum"} — never a list of strings.\n'
+        "assumption status MUST be proposed, confirmed, or rejected only.\n"
+        "constraints: MUST be an object with only dimensions, material, process, tolerance, interfaces. "
+        "Put hole sizes and offsets in dimensions (e.g. hole_diameter_mm, hole_offset_mm) — never a holes sub-object.\n"
         "links: MUST be an object like "
         '{"spec_refs": [], "requirement_refs": [], "architecture_refs": []} — never an empty list.\n\n'
         "Each step in steps[] must have:\n"
@@ -42,6 +43,13 @@ def build_system_prompt() -> str:
         "Valid step ops:\n"
         f"{ops_sorted}\n\n"
         "Example mounting plate (100x50x6 mm, corner holes 6 mm diameter, 8 mm offset):\n"
-        "steps: sketch_rectangle → extrude → hole_pattern_corners with matching params.\n"
-        "Use part_create for new parts. Propose assumptions in assumptions[] when inferring dimensions."
+        "steps: sketch_rectangle → extrude → hole_pattern_corners with EXACT param names:\n"
+        "- sketch_rectangle params: {\"length\": 100.0, \"width\": 50.0, \"plane\": \"XY\", \"mode\": \"center\"}\n"
+        "- extrude params: {\"distance\": 6.0, \"direction\": \"+Z\", \"mode\": \"add\"}\n"
+        "- hole_pattern_corners params: {\"diameter\": 6.0, \"offset\": 8.0}\n"
+        "Never use length_mm, depth_mm, diameter_mm, or offset_x_mm in step params — use length, distance, diameter, offset.\n"
+        "Use part_create for new parts. Propose assumptions in assumptions[] when inferring dimensions.\n\n"
+        "If the message is conversational (greeting, thanks, small talk) and not a CAD request, "
+        "return valid JSON with type: doc_scaffold, steps: [], summary: a brief friendly reply, "
+        "target: {}, assumptions: [], questions: [], constraints: {}, links: {}."
     )

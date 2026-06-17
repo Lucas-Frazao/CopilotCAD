@@ -144,7 +144,17 @@ app.whenReady().then(async () => {
     if (!backendProcess) {
       throw new Error("Backend process is not running");
     }
-    return sendJsonRpc(backendProcess, method, params);
+    try {
+      return await sendJsonRpc(backendProcess, method, params);
+    } catch (err: unknown) {
+      const rpcErr = err as { message?: string; code?: number; data?: unknown };
+      const payload = JSON.stringify({
+        message: rpcErr.message ?? "JSON-RPC error",
+        code: rpcErr.code,
+        data: rpcErr.data,
+      });
+      throw new Error(`COPILOTCAD_RPC:${payload}`);
+    }
   });
 
   await pingBackend();

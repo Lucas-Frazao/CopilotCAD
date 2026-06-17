@@ -3,6 +3,7 @@
 from typing import Any, Literal
 
 from ir.parser import IRParseError, parse_llm_json
+from ir.sanitizer import sanitize_intent_ir_data
 from ir.validator import IntentIRValidationError, validate_intent_ir
 from llm.adapter import LLMAdapter
 from llm.errors import LLMConfigurationError, LLMError
@@ -56,7 +57,7 @@ def compile_intent(
         ) from exc
 
     try:
-        return validate_intent_ir(data)
+        return validate_intent_ir(sanitize_intent_ir_data(data))
     except IntentIRValidationError as exc:
         raise CompileError(
             "validation",

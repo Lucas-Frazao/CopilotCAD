@@ -4,7 +4,7 @@
 
 Install and integrate `pythonOCC-core` as the geometry kernel, implement a thin OCCT bridge with three working modeling operations (`sketch_rectangle`, `extrude`, `hole_pattern_corners`), add minimal STEP export from a `TopoDS_Shape`, and prove the mounting plate golden example can be built and exported to a valid STEP file using Python alone. F-003 delivers kernel-level geometry capability only; it does not execute Intent IR, wire IPC, or touch the frontend.
 
-**Status:** Not implemented.
+**Status:** Implemented (OCCT tests require `pythonocc-core`; skipped when unavailable, e.g. Windows ARM64).
 
 ## Context and goals
 

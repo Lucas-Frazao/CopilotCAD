@@ -2,175 +2,96 @@
 
 ## Summary
 
-Implement the LLM side of the Intent IR compiler: abstract `LLMAdapter`, `ClaudeAdapter` using the Anthropic Python SDK, a system prompt that encodes IR rules and the MVP step catalog, parsing of LLM JSON output, and a `compile_intent` pipeline that returns a validated `IntentIR` or structured errors. Expose compilation via Python API and JSON-RPC for tests. `LocalAdapter` remains a stub.
+Turn **English chat text into validated Intent IR** using Claude (Anthropic API): system prompt, JSON parsing, validation, and structured errors when the model or schema fails.
 
 **Status:** Implemented (live API test skips without `ANTHROPIC_API_KEY`).
 
-## Context and goals
+## Why this matters
 
-F-001 defines and validates Intent IR; F-004 executes validated IR. F-005 fills the gap: natural language → structured IR object via Claude.
+Users speak English; the engine speaks Intent IR. F-005 is the **compiler front-end** — the bridge from natural language to the strict plan F-004 executes. Without it, chat could only run pre-written test IRs.
 
-Goals:
+## Key concepts
 
-- `LLMAdapter` abstract interface: given user message + optional project context, return raw structured JSON from the model.
-- `ClaudeAdapter`: call Anthropic API with system prompt + user message; require JSON object response.
-- System prompt includes: product behavior rules, slim IR field summary, `MVP_STEP_OPS` list, JSON-only output instruction.
-- `ir/parser.py`: extract JSON from model text (plain JSON or fenced code blocks) → `dict`.
-- `compile_intent(message, context, adapter)`: adapter → parse → `validate_intent_ir` → `IntentIR` or `CompileError` with parse/validation/API details.
-- JSON-RPC `compile_intent` on `main.py` for stdio testing (no `chat.send` yet).
-- Unit tests with **mocked** Claude responses for five representative part prompts; optional live test skipped without `ANTHROPIC_API_KEY`.
+| Term | Plain meaning |
+|------|----------------|
+| **LLM** | Large Language Model — AI that generates text (here, JSON plans). |
+| **ClaudeAdapter** | CopilotCAD’s connector to Anthropic’s Claude API. |
+| **System prompt** | Instructions telling the model how to format Intent IR and which ops exist. |
+| **compile_intent** | Pipeline: user message → LLM → parse JSON → validate → `IntentIR` object. |
+| **CompileError** | Unified failure: parse, validation, or API/configuration errors. |
+| **ANTHROPIC_API_KEY** | Environment variable holding your Anthropic API key for live calls. |
 
-## Non-goals
+## What the user will experience
 
-- **IR execution** — no changes to `engine/executor.py` or `execute_intent` (F-004).
-- **Problems engine** — no post-compile validation (F-006).
-- **Frontend / `chat.send` IPC** — full chat wiring is F-007; F-005 adds `compile_intent` only.
-- **Project file writes** — context injection may include read-only dict fields passed by caller; no workspace loading in F-005.
-- **Risk classifier / approval** — no `ir.pending` (F-022).
-- **Local model inference** — `LocalAdapter` raises `NotImplementedError` or remains explicit stub.
-- **Editing** `docs/feature_roadmap.md` or `docs/architecture.md`.
+After F-007/F-008 wire the UI, users type a part description and the backend **compiles** it into a plan before executing. In F-005 alone:
 
-## Requirements
+- Developers call `compile_intent("Create a mounting plate…")` in Python or JSON-RPC `compile_intent`.
+- Success returns full IR dict; failure returns structured error (missing API key, bad JSON, invalid op).
+
+## What we will build
 
 ### `backend/llm/adapter.py`
 
-Abstract base class `LLMAdapter`:
-
-```python
-def generate_structured_json(
-    self,
-    user_message: str,
-    project_context: dict[str, Any] | None = None,
-) -> str:
-    """Return raw text expected to contain a JSON object."""
-```
-
-`project_context` is optional opaque dict (e.g. `active_part_id`, `spec_snippet`) serialized into the user or system side per adapter design.
+Abstract `LLMAdapter.generate_structured_json(message, context?)`.
 
 ### `backend/llm/claude_adapter.py`
 
-- Uses `anthropic` SDK (`Anthropic` client).
-- API key from environment variable `ANTHROPIC_API_KEY`; raise clear `LLMConfigurationError` if missing when adapter is constructed or on first call.
-- Model: `claude-sonnet-4-20250514` or configurable via env `COPILOTCAD_CLAUDE_MODEL` with sensible default documented in module.
-- Request structured JSON: use API JSON mode / `response_format` or prompt contract requiring a single JSON object (no markdown prose).
-- On API errors, wrap in `LLMError` with message (no silent failure).
+- Anthropic SDK, API key from environment.
+- Model configurable (e.g. Claude Sonnet family).
+- Errors wrapped as `LLMError` / `LLMConfigurationError`.
 
-### `backend/llm/local_adapter.py`
+### `backend/llm/prompts.py`
 
-Stub: `generate_structured_json` raises `NotImplementedError` with message pointing to F-005 non-goals.
-
-### `backend/llm/prompts.py` (or `llm/system_prompt.py`)
-
-Function `build_system_prompt()` returning string including:
-
-- Role: CopilotCAD IR compiler; output **only** valid JSON matching Intent IR.
-- List of intent `type` values from `schemas/intent_ir.py`.
-- List of valid `steps[].op` from `MVP_STEP_OPS`.
-- Required top-level fields: `type`, `prompt`, `summary`, `target`, etc.
-- Step dependency rules: `from` references prior step ids.
-- Units: millimeters for dimensions unless stated otherwise.
-
-Keep prompt maintainable; may reference golden mounting plate as example shape (not full dump of all Pydantic schemas).
+- `build_system_prompt()` — IR fields, intent types, full `MVP_STEP_OPS` list, JSON-only output rules, mounting plate example shape.
 
 ### `backend/ir/parser.py`
 
-```python
-def parse_llm_json(text: str) -> dict[str, Any]
-```
-
-- Strip whitespace; accept raw JSON object string.
-- If fenced block present (```json ... ```), extract inner JSON.
-- On `json.JSONDecodeError`, raise `IRParseError` with snippet context.
+- `parse_llm_json(text)` — raw JSON or ```json fenced blocks → dict.
+- `IRParseError` on garbage input.
 
 ### `backend/ir/compiler.py`
 
-```python
-class CompileError(Exception):
-    error_type: Literal["parse", "validation", "llm"]
-    message: str
-    details: dict[str, Any]
-
-def compile_intent(
-    user_message: str,
-    adapter: LLMAdapter,
-    project_context: dict[str, Any] | None = None,
-) -> IntentIR
-```
-
-Flow: `adapter.generate_structured_json` → `parse_llm_json` → `validate_intent_ir`. Map `IRParseError`, `IntentIRValidationError`, `LLMError` to `CompileError`.
+- `compile_intent(message, adapter, context?)` → `IntentIR` or `CompileError`.
 
 ### JSON-RPC: `compile_intent`
 
-In `backend/main.py`:
+- Params: `message`, optional `context`.
+- Success: IR as JSON dict (`model_dump`).
+- Failure: structured `CompileError` details.
 
-```python
-@method
-def compile_intent(message: str, context: dict | None = None) -> Success | Error
-```
+### `backend/llm/local_adapter.py`
 
-- Uses default `ClaudeAdapter` instance (lazy singleton or per-request).
-- On success: return `IntentIR.model_dump()` (JSON-serializable dict).
-- On `CompileError`: return `Error` with structured `details`.
-- On missing API key: return `Error` with configuration message.
-
-`ping` and `execute_intent` remain unchanged.
+Stub — `NotImplementedError` (local models deferred).
 
 ### Tests (`tests/backend/test_llm_compile.py`)
 
-**Mocked tests (must pass without API key):**
-
-1. Mounting plate prompt → mock JSON matching `mounting_plate_ir()` → `compile_intent` succeeds.
-2. Simple plate / box variant prompt → mock valid minimal `part_create` IR.
-3. Invalid JSON from mock → `CompileError` type `parse`.
-4. Valid JSON but invalid op → `CompileError` type `validation`.
-5. Parser unit tests: raw JSON and fenced JSON for `parse_llm_json`.
-
-Use `unittest.mock` to patch `ClaudeAdapter.generate_structured_json` (or Anthropic client).
-
-**Optional live test:**
-
-- `@pytest.mark.skipif(not os.getenv("ANTHROPIC_API_KEY"))` 
-- One real call with mounting plate English prompt; assert `validate_intent_ir` would accept result (lenient:至少 1 step with sketch or extrude).
-
-### Dependencies
-
-- `anthropic>=0.28` already in `pyproject.toml`.
-
-## Data model
-
-### Error types
-
-| Exception | When |
-|-----------|------|
-| `LLMConfigurationError` | Missing API key |
-| `LLMError` | Anthropic API failure |
-| `IRParseError` | JSON parse failure |
-| `IntentIRValidationError` | Existing F-001 validator |
-| `CompileError` | Unified compile pipeline wrapper |
+Mocked Claude for mounting plate, simple box, parse errors, validation errors, JSON-RPC smoke. Optional live test with API key.
 
 ## Acceptance criteria
 
-1. `LLMAdapter` ABC and `ClaudeAdapter` implemented per Requirements.
-2. `build_system_prompt()` includes MVP step catalog and IR field rules.
-3. `parse_llm_json` handles plain and fenced JSON; raises `IRParseError` on garbage.
-4. `compile_intent` returns validated `IntentIR` for mocked mounting plate JSON.
-5. Parse and validation failures return structured `CompileError` (not uncaught exceptions).
-6. JSON-RPC `compile_intent` works in stdio dispatch test (mocked adapter or injected test path).
-7. Five representative mocked prompt scenarios pass in pytest without network.
-8. Optional live test skips without `ANTHROPIC_API_KEY`.
-9. No OCCT imports added outside `kernel/occt_bridge.py`.
-10. No `frontend/` changes.
-11. Existing F-001–F-004 tests still pass.
+1. `ClaudeAdapter` and `LLMAdapter` implemented.
+2. System prompt includes step catalog and IR rules.
+3. `parse_llm_json` handles plain and fenced JSON.
+4. Mocked `compile_intent` returns validated IR for golden fixture.
+5. Parse/validation failures are `CompileError`, not uncaught exceptions.
+6. JSON-RPC `compile_intent` works in stdio tests (mocked).
+7. Five+ mocked scenarios pass without network.
+8. Live test skips without API key.
+9. No frontend changes; F-001–F-004 tests still pass.
 
 ## Dependencies
 
-- **F-001** — `IntentIR`, `validate_intent_ir`, `MVP_STEP_OPS`, mounting plate IR fixture.
-- **F-004** — not invoked in F-005 (compile only).
+- **F-001** — `validate_intent_ir`, `MVP_STEP_OPS`, fixtures.
 
-## Open questions for implementer (defaults if user does not override)
+## Out of scope (not in F-005)
 
-| Question | Default in spec |
-|----------|-----------------|
-| Claude model id | `claude-sonnet-4-20250514` or env override |
-| Live API tests in CI | Skipped without key; mocked tests required |
-| `ir/models.py` placeholder | Leave as stub or re-export from `schemas.intent_ir` — prefer no duplicate models |
+- Executing IR (F-004 — separate RPC).
+- Problems engine (F-006).
+- Frontend chat wiring (F-007+).
+- Reading workspace files for context (optional dict only).
+- Local model inference.
+- IR sanitizer for LLM drift (added later on implementation branch).
+
+## Notes for reviewers
+
+F-005 quality depends on **prompt + validator**. Live LLM output may need sanitizer/normalization (separate work) even when F-005 is “done.”

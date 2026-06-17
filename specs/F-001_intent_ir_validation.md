@@ -2,222 +2,82 @@
 
 ## Summary
 
-Define the slim Intent IR as strict Pydantic v2 models and a validator that rejects invalid IR before any geometry or project writes occur. F-001 establishes the contract between LLM output (future F-005), the compiler pipeline (`docs/architecture.md`), and the execution engine (F-004). No IPC, LLM, or file-system integration is required in this feature.
+Define **Intent IR** — the strict JSON “plan” every CopilotCAD action must follow — and a **validator** that rejects bad plans before any geometry or files are touched. Think of it as a compiler’s type checker for hardware intent.
 
 **Status:** Implemented.
 
-## Context and goals
+## Why this matters
 
-Every write operation in CopilotCAD must compile into a structured Intent IR object (`docs/product_vision.md`, `docs/architecture.md`). F-001 makes that object explicit, machine-validated, and testable.
+CopilotCAD’s core promise is **English → structured plan → CAD**, not “text → random shape.” F-001 defines what a valid plan looks like and catches mistakes early (wrong step types, broken dependencies) with clear errors instead of silent corruption.
 
-Goals:
+## Key concepts
 
-- Encode the slim IR fields: `type`, `prompt`, `summary`, `target`, `context`, `questions`, `assumptions`, `constraints`, `steps`, `links`.
-- Enforce Pydantic strict mode (`extra="forbid"`) so unknown fields fail validation.
-- Restrict `steps[].op` to the MVP step catalog from `docs/product_vision.md`.
-- Validate step identity and dependency order (`from` references only prior steps).
-- Expose `validate_intent_ir(data: dict) -> IntentIR` with structured errors for schema, field, and op-type failures.
-- Provide unit tests using the mounting plate golden IR as a known-good example.
+| Term | Plain meaning |
+|------|----------------|
+| **Intent IR** | Intermediate Representation — a JSON document describing what to do: part type, summary, modeling steps, assumptions, questions. |
+| **Pydantic** | Python library that validates data against a schema (like TypeScript types at runtime). |
+| **Step** | One modeling operation in order — e.g. sketch rectangle, then extrude, then drill holes. |
+| **Step catalog** | Allowed operation names (`sketch_rectangle`, `extrude`, `hole_pattern_corners`, mates, etc.). |
+| **Dependency (`from`)** | A step that needs output from a previous step — e.g. extrude must reference the sketch step id. |
+| **Validator** | Code that checks IR dicts and returns a typed object or structured errors. |
 
-## Non-goals
+## What the user will experience
 
-- LLM prompting, parsing, or `ir/parser.py` implementation (F-005).
-- Risk classification or approval workflow (F-022).
-- Per-op required-parameter validation beyond op-type allowlisting (may be added later in F-004 step handlers).
-- Execution of steps or geometry kernel calls (F-003, F-004).
-- IPC exposure of validation (F-007+).
-- Full `spec.yaml` / `assumptions.yaml` / `part_spec.py` schemas (separate schemas; F-002+).
-- Validating traceability against live project files on disk.
+End users do not interact with Intent IR directly in F-001. What this enables:
 
-## Requirements
+- Later, when chat compiles English to IR, **invalid AI output fails safely** with explainable errors instead of crashing the kernel.
+- Engineers can unit-test “good” and “bad” plans without running geometry.
 
-### Schema module
+## What we will build
 
-- Location: `backend/schemas/intent_ir.py`.
-- All models use Pydantic v2 with `model_config = ConfigDict(extra="forbid", strict=True)` (except `IRStep`, which also uses `populate_by_name=True` for the `from` alias).
+### Schema (`backend/schemas/intent_ir.py`)
 
-### Models to define
+Models for: `IntentIR`, `IRTarget`, `IRContext`, `IRQuestion`, `IRAssumption`, `IRConstraints`, `IRStep`, `IRLinks`.
 
-| Model | Role |
-|-------|------|
-| `IntentIR` | Root IR document |
-| `IRTarget` | Part, assembly, or doc target |
-| `IRContext` | Active part, selection, workspace path |
-| `IRQuestion` | Blocking or non-blocking questions |
-| `IRAssumption` | Scoped assumption with status |
-| `IRConstraints` | Dimensions, material, process, tolerance, interfaces |
-| `IRStep` | Ordered modeling or mate step |
-| `IRLinks` | Traceability references |
+- Strict mode: unknown fields are rejected.
+- `MVP_STEP_OPS` — frozen set of all allowed `steps[].op` values (sketch, extrude, holes, mates, patterns, etc.).
+- Intent types: `part_create`, `part_edit`, `assembly_create`, `doc_scaffold`, `export`, `release`.
 
-### `IntentIR` required and default fields
+### Validator (`backend/ir/validator.py`)
 
-| Field | Required | Default / notes |
-|-------|----------|----------------|
-| `type` | Yes | One of MVP intent types (see Data model) |
-| `prompt` | Yes | Original user message |
-| `summary` | Yes | Short execution summary |
-| `target` | Yes | `IRTarget` |
-| `context` | No | Empty `IRContext` if omitted |
-| `questions` | No | Empty list |
-| `assumptions` | No | Empty list |
-| `constraints` | No | Empty `IRConstraints` |
-| `steps` | No | Empty list |
-| `links` | No | Empty `IRLinks` |
+- `validate_intent_ir(data: dict) -> IntentIR`
+- `IntentIRValidationError` with `field_errors`, `invalid_ops`, and `to_dict()` for APIs.
+- Rules: unique step ids, `from` only references earlier steps, ops must be in catalog.
 
-### MVP step catalog (`MVP_STEP_OPS`)
+### Golden mounting plate IR (test fixture)
 
-The validator must reject any `steps[].op` not in this set:
+Three steps aligned with the canonical example:
 
-- Sketch: `sketch_rectangle`, `sketch_circle`
-- Solid: `extrude`, `cut_extrude`, `revolve`
-- Holes: `hole_simple`, `hole_pattern_corners`
-- Edges: `fillet`, `chamfer`
-- Patterns: `pattern_linear`, `pattern_circular`, `mirror`
-- Other: `shell`, `offset_face`, `create_plane`, `create_axis`, `create_point`
-- Assembly mates: `mate_fix`, `mate_coincident`, `mate_concentric`, `mate_distance`
+1. `sketch_rectangle` — 100×50 mm on XY plane  
+2. `extrude` — 6 mm, from sketch  
+3. `hole_pattern_corners` — 6 mm diameter, 8 mm offset  
 
-Export `MVP_STEP_OPS` as a `frozenset[str]` from `intent_ir.py` for use by the validator and tests.
+### Tests (`tests/backend/test_intent_ir_validation.py`)
 
-### Validator module
-
-- Location: `backend/ir/validator.py`.
-- Function: `validate_intent_ir(data: dict) -> IntentIR`.
-- Exception: `IntentIRValidationError` with:
-  - `message` (str)
-  - `field_errors` (list of dicts with `loc`, `msg`, `type`)
-  - `invalid_ops` (list of str)
-  - `to_dict()` for serialization
-
-Validation order:
-
-1. Collect invalid op types from `data["steps"]` (if present).
-2. Validate step dependency graph on raw step dicts.
-3. Run `IntentIR.model_validate(data)`.
-4. If any errors accumulated, raise `IntentIRValidationError` with all field errors and invalid ops.
-5. On success, return validated `IntentIR`.
-
-### Step dependency rules
-
-- Each `steps[].id` must be unique within the IR.
-- If `steps[].from` is present, it must be a string referencing the `id` of a step that appears earlier in the `steps` list.
-- Forward references and references to unknown ids must fail with `type: "invalid_step_dependency"`.
-- Duplicate ids must fail with `type: "duplicate_step_id"`.
-
-### Unit tests
-
-- Location: `tests/backend/test_intent_ir_validation.py`.
-- **Valid IR:** Mounting plate example (see Data model) passes `validate_intent_ir` and returns `IntentIR` with expected `type`, `target.part_id`, step count, and `from` linkage.
-- **Missing required field:** Removing `summary` (or another required field) raises `IntentIRValidationError` with a field error whose `loc` includes that field.
-- **Invalid op type:** Setting a step `op` to a value outside `MVP_STEP_OPS` raises `IntentIRValidationError` with that op in `invalid_ops` and a field error with `type: "invalid_op_type"`.
-- **Invalid dependency:** Setting `from` to a forward or unknown step id raises `IntentIRValidationError` with `type: "invalid_step_dependency"`.
-
-## Data model and contracts
-
-### Intent types (`IntentIR.type`)
-
-Allowed values:
-
-- `part_create`
-- `part_edit`
-- `assembly_create`
-- `doc_scaffold`
-- `export`
-- `release`
-
-### `IRTarget`
-
-| Field | Type | Required |
-|-------|------|----------|
-| `part_id` | string \| null | No (default null) |
-| `assembly_id` | string \| null | No |
-| `doc_path` | string \| null | No |
-
-### `IRContext`
-
-| Field | Type | Default |
-|-------|------|---------|
-| `active_part_id` | string \| null | null |
-| `selection` | list of string | `[]` |
-| `workspace_path` | string \| null | null |
-
-### `IRQuestion`
-
-| Field | Type | Default |
-|-------|------|---------|
-| `id` | string | required |
-| `text` | string | required |
-| `blocking` | bool | `false` |
-| `status` | `open` \| `answered` \| `dismissed` | `open` |
-| `answer` | string \| null | null |
-
-### `IRAssumption`
-
-| Field | Type | Default |
-|-------|------|---------|
-| `id` | string | required |
-| `text` | string | required |
-| `scope` | `part` \| `assembly` \| `project` | `part` |
-| `source` | `user` \| `ai` \| `spec` | `ai` |
-| `importance` | `low` \| `medium` \| `high` | `medium` |
-| `status` | `proposed` \| `confirmed` \| `rejected` | `proposed` |
-
-### `IRConstraints`
-
-| Field | Type | Default |
-|-------|------|---------|
-| `dimensions` | object (arbitrary keys) | `{}` |
-| `material` | string \| null | null |
-| `process` | string \| null | null |
-| `tolerance` | object | `{}` |
-| `interfaces` | list of string | `[]` |
-
-### `IRStep`
-
-| Field | JSON key | Type | Default |
-|-------|----------|------|---------|
-| `id` | `id` | string | required |
-| `op` | `op` | string | required (must be in `MVP_STEP_OPS` after validator) |
-| `params` | `params` | object | `{}` |
-| `from_step` | `from` | string \| null | null |
-
-### `IRLinks`
-
-| Field | Type | Default |
-|-------|------|---------|
-| `spec_refs` | list of string | `[]` |
-| `requirement_refs` | list of string | `[]` |
-| `architecture_refs` | list of string | `[]` |
-
-### `IntentIRValidationError` payload (`to_dict()`)
-
-```json
-{
-  "message": "Intent IR validation failed",
-  "field_errors": [
-    { "loc": ["summary"], "msg": "...", "type": "missing" }
-  ],
-  "invalid_ops": ["magic_extrude"]
-}
-```
-
-### Golden mounting plate IR (known-good test fixture)
-
-Minimal valid IR used in tests and referenced by F-004:
-
-- `type`: `part_create`
-- `target.part_id`: `mounting_plate`
-- `steps`:
-  1. `s1` — `sketch_rectangle` with `length`, `width`, `plane`, `mode` params
-  2. `s2` — `extrude`, `from`: `s1`, with `distance`, `direction`, `mode`
-  3. `s3` — `hole_pattern_corners`, `from`: `s2`, with `diameter`, `offset`
+Valid IR passes; missing fields, bad ops, and forward dependencies fail with structured errors.
 
 ## Acceptance criteria
 
-1. **Models importable:** `from schemas.intent_ir import IntentIR, MVP_STEP_OPS` succeeds; all eight model types are defined.
-2. **Strict mode:** An IR dict with an extra top-level field fails validation.
-3. **Valid mounting plate:** Golden IR dict passes `validate_intent_ir` and yields `IntentIR` with three steps and correct `from` chain on step `s2`.
-4. **Missing required field:** Validator raises `IntentIRValidationError` with field errors identifying the missing field.
-5. **Invalid op:** Validator raises `IntentIRValidationError` with `invalid_ops` containing the bad op and `field_errors` including `invalid_op_type`.
-6. **Invalid dependency:** Validator raises `IntentIRValidationError` with `invalid_step_dependency` when `from` points forward or to a missing id.
-7. **Tests pass:** `pytest` for `tests/backend/test_intent_ir_validation.py` reports all tests green.
-8. **No pipeline wiring:** `main.py` and Electron code are unchanged; no new JSON-RPC methods in F-001.
+1. All eight model types importable from `schemas.intent_ir`.
+2. Extra unknown fields fail validation (strict mode).
+3. Golden mounting plate IR passes with three steps and correct `from` chain.
+4. Invalid op types appear in `invalid_ops` and field errors.
+5. Invalid step dependencies raise `invalid_step_dependency`.
+6. Pytest for `test_intent_ir_validation.py` passes.
+7. No changes to `main.py` or Electron — validation is library-only in F-001.
+
+## Dependencies
+
+- **F-000** — repo and Python package layout.
+
+## Out of scope (not in F-001)
+
+- LLM prompting or JSON parsing from AI text (F-005).
+- Executing steps or calling OCCT (F-003, F-004).
+- IPC exposure of validation (F-007+).
+- Full `spec.yaml` schemas (separate from IR).
+- Per-op parameter validation inside handlers (F-004).
+
+## Notes for reviewers
+
+Intent IR is the **contract** between AI, backend, and UI. F-001 makes that contract explicit and testable.

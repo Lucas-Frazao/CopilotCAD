@@ -2,139 +2,105 @@
 
 ## Summary
 
-Upgrade the F-007 minimal chat into a full chat interaction surface: structured `ChatMessage` rendering, inline assumption tags, diff summaries after IR execution, slash-command picker UI, and blocking-question prompts. Wire `compile_intent` → `execute_intent` so a single send shows summary, assumptions, step diff, and problems in chat. Slash commands are detected and listed in UI only (handlers deferred to F-014).
+Upgrade minimal chat into the **full interaction surface**: structured messages, assumption tags, execution diff summaries, slash-command picker, blocking-question UI, and **compile → execute** on each send so users see plan + results + problems in one thread.
 
 **Status:** Implemented.
 
-## Context and goals
+## Why this matters
 
-F-007 delivers compile-only chat with plain text summaries. F-008 makes the chat panel the primary interaction surface for the compile → execute loop, matching roadmap “prompt → IR → diff summary” visibility before explorer/viewport work (F-009–F-011).
+F-007 only **compiles** English to a plan summary. F-008 closes the loop users care about: describe a part → see what CopilotCAD understood → see which modeling steps ran → see warnings — before explorer and viewport (F-009–F-011) show files and 3D.
 
-Goals:
+## Key concepts
 
-- Refactor chat to use `ChatMessage`, `AssumptionTag`, `DiffSummary`, `SlashCommandPicker` components.
-- Extend IPC bridge with `executeIntent(ir)` returning execution result + `problems`.
-- On send (non-slash): `compileIntent` → `executeIntent` → assistant message with summary, assumptions, diff, problems inline.
-- Slash input: show picker for MVP commands; selecting a command inserts command text (no backend handler in F-008).
-- Blocking questions from IR: render accept/edit controls (local UI state; no backend answer RPC yet).
-- Optional Zustand `appStore` for chat message list (or keep local state in `ChatPanel` if simpler).
+| Term | Plain meaning |
+|------|----------------|
+| **Compile** | English → Intent IR (`compile_intent`). |
+| **Execute** | Run IR steps on geometry kernel (`execute_intent`). |
+| **Diff summary** | Short report of which steps ran and whether execution succeeded. |
+| **Assumption tag** | Inline chip showing something the AI inferred (e.g. “6 mm thickness — proposed”). |
+| **Slash command picker** | Dropdown when typing `/` listing commands like `/part`, `/export`. |
+| **Blocking question** | Required clarification from IR — UI to type answer and Accept (local state in F-008). |
 
-**Done when (roadmap):** a complete chat interaction (prompt → IR → diff summary) is visible in the UI.
+## What the user will experience
 
-## Non-goals
+1. Welcome: *“What to do first? Ask about this CAD model or we can start creating one.”*
+2. Type a part prompt (not a bare slash command) → user message, then assistant message with:
+   - Summary text  
+   - Assumption tags (if any)  
+   - Diff block (step ids, success/failure)  
+   - Inline problem lines (warnings/errors)  
+3. Type `/` → filterable list of 12 MVP slash commands; pick one to insert into input.
+4. Send slash-only command (e.g. `/export`) → placeholder hint that handler comes in F-014.
+5. Greetings like “Hello” → friendly local reply without calling the LLM (implementation enhancement).
+6. Blocking questions show text field + Accept below assistant message (local UI only until F-023).
 
-- **Slash command execution** — no project file writes from `/vision`, `/part`, etc. (F-014).
-- **Problems panel** — problems shown inline in chat only (F-010).
-- **Explorer / viewport updates** — no geometry mesh or file tree refresh (F-009, F-011).
-- **Backend `chat.send`** — continue using `compile_intent` + `execute_intent`.
-- **Assumption confirm/reject to backend** — accept/edit updates local display only (F-023).
-- **High-risk approval workflow** — no `ir.pending` (F-022).
-- **Editing** `docs/feature_roadmap.md` or `docs/architecture.md`.
-
-## Requirements
+## What we will build
 
 ### IPC extensions
 
-**Preload / main** — add:
-
-```typescript
-executeIntent(ir: Record<string, unknown>): Promise<ExecuteIntentResult>
-```
-
-**Types** (`frontend/renderer/ipc/types.ts`):
-
-- Extend `IntentIRPayload` with typed `assumptions`, `questions` arrays (minimal fields for UI).
-- `ProblemPayload` — align with `schemas/problem.py` fields: `id`, `type`, `severity`, `message`, `suggested_next_steps`.
-- `ExecuteIntentResult` — `{ success, step_ids, final_step_id?, error?, problems: ProblemPayload[] }`.
-
-**Bridge** — `executeIntent(ir: IntentIRPayload): Promise<ExecuteIntentResult>`.
-
-### Chat message model
-
-```typescript
-type ChatMessageKind = "text" | "compile_result" | "error" | "slash_hint";
-
-interface ChatMessageData {
-  id: string;
-  role: "user" | "assistant";
-  kind: ChatMessageKind;
-  text?: string;
-  intent?: IntentIRPayload;
-  execution?: ExecuteIntentResult;
-}
-```
+- Preload / bridge: `executeIntent(ir)` → `ExecuteIntentResult` with `problems[]`.
+- Types: `IntentIRPayload`, `ProblemPayload`, `ExecuteIntentResult`, `ChatMessageData`.
 
 ### Components
 
-| Component | Responsibility |
-|-----------|----------------|
-| `ChatMessage.tsx` | Renders label (You / CopilotCAD), body by `kind` |
-| `AssumptionTag.tsx` | Single assumption: text, importance, status badge |
-| `DiffSummary.tsx` | Lists executed `step_ids`, `final_step_id`, success/error one-liner |
-| `SlashCommandPicker.tsx` | Filterable list when input starts with `/`; MVP 12 commands from roadmap F-014 |
-| `ChatPanel.tsx` | Orchestrates input, picker, send flow, message list |
+| Component | Role |
+|-----------|------|
+| `ChatPanel.tsx` | Input, send, message list, slash picker orchestration |
+| `ChatMessage.tsx` | User vs CopilotCAD labels; body by message kind |
+| `AssumptionTag.tsx` | Assumption text, importance, status badge |
+| `DiffSummary.tsx` | Execution one-liner from step ids |
+| `SlashCommandPicker.tsx` | Filter `/vision`, `/part`, … `/history` |
 
-### Send flow (non-slash)
+### Send flow (normal message)
 
-1. Append user message.
-2. `compileIntent(text)` → `IntentIRPayload`.
-3. `executeIntent(result)` → `ExecuteIntentResult`.
-4. Append assistant `compile_result` message with `intent` + `execution`.
-5. `ChatMessage` renders: `summary` text, `AssumptionTag` list from `intent.assumptions`, `DiffSummary` from execution, inline problem lines from `execution.problems`.
-
-On compile failure: assistant `error` message (preserve F-007 error formatting).
-
-On execute failure: still show compiled IR summary/assumptions if compile succeeded; `DiffSummary` shows failure; problems from error payload.
-
-### Slash command UI
-
-- When input value starts with `/`, show `SlashCommandPicker` above input.
-- Static command list: `/vision`, `/constitution`, `/architecture`, `/manufacturing`, `/part`, `/interface`, `/plan`, `/review`, `/release`, `/export`, `/assumptions`, `/history`.
-- Filter by typed prefix; click or Enter selects → sets input to command + space (does not auto-send).
-- Sending a slash-only message shows assistant text: “Slash command recognized (handler not implemented until F-014).”
-
-### Blocking questions UI
-
-- If `intent.questions` contains `blocking: true` and `status: "open"`, render below assistant message:
-  - Question text
-  - Text input (edit answer)
-  - Accept button → sets local `status` display to answered (store in component state map by question id)
-- No IPC call on accept in F-008.
+1. Append user message.  
+2. `compileIntent(text)`  
+3. `executeIntent(intent)`  
+4. Append `compile_result` assistant message with intent + execution.  
+5. On compile failure → `error` message with friendly text.  
+6. On execute failure → still show summary/assumptions; diff shows failure; problems inline.
 
 ### Styling
 
-- Extend `app.css` for assumption tags, diff block, slash picker dropdown, question prompt row.
-- Keep dark IDE-like theme consistent with F-007.
+- Extend `app.css`: tags, diff block, slash dropdown, blocking-question row (dark IDE theme).
 
 ### Tests
 
-- `frontend/renderer/components/DiffSummary.test.tsx` or `chat-utils.test.ts` — pure function building diff text from mock `ExecuteIntentResult`.
-- `frontend/renderer/ipc/types.test.ts` — extend with `ExecuteIntentResult` shape smoke test.
-- Manual: `npm run dev` → send mounting plate prompt → see summary, assumptions (if any), step list, problems (e.g. traceability_gap).
+- `chat-utils.test.ts` — diff text, slash helpers, error formatting.
+- `ipc/types.test.ts` — `ExecuteIntentResult` shape.
+- Manual: mounting plate prompt → summary + diff + problems.
 
 ### Backend
 
-- **No changes** — `compile_intent` and `execute_intent` already exist.
+No new methods required — uses existing `compile_intent` and `execute_intent`.
 
 ## Acceptance criteria
 
 1. `executeIntent` exposed through preload, bridge, and types.
-2. `ChatMessage` renders user and assistant messages with correct labels.
-3. Assistant compile result shows `summary`, assumption tags, and diff summary after successful compile + execute.
-4. Failed execution shows error in diff area and inline problems when present.
-5. Slash picker appears when typing `/` and lists filterable MVP commands.
-6. Blocking questions render with accept/edit UI (local state only).
-7. F-007 welcome message still shown on first load.
-8. `npm test` in `frontend/` passes (existing + new unit tests).
-9. Backend pytest unchanged and passing.
-10. `nodeIntegration: false`, `contextIsolation: true` unchanged in `main.ts`.
+2. `ChatMessage` renders user and assistant with correct labels.
+3. Successful flow shows summary, assumptions, diff after compile + execute.
+4. Failed execution shows error in diff and inline problems when present.
+5. Slash picker on `/` with filterable MVP commands.
+6. Blocking questions with accept/edit UI (local state).
+7. Welcome message on first load.
+8. `npm test` in `frontend/` passes.
+9. Backend pytest unchanged.
+10. `nodeIntegration: false`, `contextIsolation: true` unchanged.
 
 ## Dependencies
 
-- **F-007** — shell, IPC, minimal chat.
+- **F-007** — Shell, IPC, minimal chat.
 - **F-005** — `compile_intent`.
-- **F-004 / F-006** — `execute_intent` + `problems` in response.
+- **F-004 / F-006** — `execute_intent` + `problems`.
 
-## Overlap note
+## Out of scope (not in F-008)
 
-F-008 replaces/extends F-007 `ChatPanel` implementation. F-010 may later bind `execution.problems` to Problems panel; F-008 shows them in chat.
+- Slash command **execution** (F-014).
+- Dedicated Problems panel (F-010) — inline only here.
+- Explorer / viewport refresh (F-009, F-011).
+- Backend assumption confirm/reject (F-023).
+- High-risk approval (F-022).
+
+## Notes for reviewers
+
+F-008 is the **primary write UX** for MVP Phase 1. Panels around it (explorer, viewport, problems list) deepen visibility in F-009–F-010.

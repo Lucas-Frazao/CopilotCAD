@@ -12,6 +12,7 @@ from ir.compiler import CompileError, compile_intent as run_compile_intent
 from ir.validator import IntentIRValidationError, validate_intent_ir
 from llm.claude_adapter import ClaudeAdapter
 from llm.errors import LLMConfigurationError
+from problems.engine import evaluate_problems, problems_to_dicts
 
 _default_adapter: ClaudeAdapter | None = None
 
@@ -36,10 +37,14 @@ def execute_intent(ir: dict[str, Any]) -> Success | Error:
         return InvalidParams(exc.to_dict())
 
     result = execute_intent_ir(intent)
-    if not result.success:
-        return Error(-32603, result.error or "Execution failed", result.to_dict())
+    problems = evaluate_problems(intent, result)
+    payload = result.to_dict()
+    payload["problems"] = problems_to_dicts(problems)
 
-    return Success(result.to_dict())
+    if not result.success:
+        return Error(-32603, result.error or "Execution failed", payload)
+
+    return Success(payload)
 
 
 @method

@@ -1,0 +1,14 @@
+---
+description: CopilotCAD spec-driven development — specs are source of truth; code follows specs/F-0xx_*.md
+alwaysApply: true
+---
+
+# Spec-driven development
+
+- Features are **F-000, F-001, …** in `docs/feature_roadmap.md`.
+- Each feature has a contract in `specs/F-0xx_<name>.md`.
+- **Do not implement** until the user approves the spec for that feature.
+- **Do not edit** `docs/feature_roadmap.md` or `docs/architecture.md` unless the user explicitly asks.
+- When implementing F-0xx: read the spec, set `.cursor/feature-scope.json`, run verify-backend after changes.
+
+Use skill `/implement-f-feature` when starting feature implementation.

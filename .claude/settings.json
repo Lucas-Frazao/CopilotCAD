@@ -1,0 +1,28 @@
+{
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .cursor/hooks/ruff_after_edit.py",
+            "statusMessage": "Running Ruff on backend Python"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python .cursor/hooks/spec_scope_guard.py",
+            "statusMessage": "Checking feature scope"
+          }
+        ]
+      }
+    ]
+  }
+}

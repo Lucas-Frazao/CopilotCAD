@@ -1,0 +1,6 @@
+{
+  "feature": null,
+  "allowed_prefixes": [],
+  "blocked_prefixes": ["docs/feature_roadmap.md", "docs/architecture.md"],
+  "notes": "Set feature (e.g. F-004) and allowed_prefixes when implementing a scoped feature. Empty allowed_prefixes = no path restriction."
+}

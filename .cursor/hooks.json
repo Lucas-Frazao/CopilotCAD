@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "hooks": {
+    "afterFileEdit": [
+      {
+        "command": "python .cursor/hooks/ruff_after_edit.py"
+      }
+    ],
+    "preToolUse": [
+      {
+        "command": "python .cursor/hooks/spec_scope_guard.py",
+        "matcher": "Write|StrReplace|ApplyPatch|EditNotebook"
+      }
+    ]
+  }
+}

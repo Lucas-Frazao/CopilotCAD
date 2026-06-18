@@ -12,14 +12,16 @@ CopilotCAD’s core promise is **English → structured plan → CAD**, not “t
 
 ## Key concepts
 
-| Term | Plain meaning |
-|------|----------------|
-| **Intent IR** | Intermediate Representation — a JSON document describing what to do: part type, summary, modeling steps, assumptions, questions. |
-| **Pydantic** | Python library that validates data against a schema (like TypeScript types at runtime). |
-| **Step** | One modeling operation in order — e.g. sketch rectangle, then extrude, then drill holes. |
-| **Step catalog** | Allowed operation names (`sketch_rectangle`, `extrude`, `hole_pattern_corners`, mates, etc.). |
-| **Dependency (`from`)** | A step that needs output from a previous step — e.g. extrude must reference the sketch step id. |
-| **Validator** | Code that checks IR dicts and returns a typed object or structured errors. |
+
+| Term                    | Plain meaning                                                                                                                    |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Intent IR**           | Intermediate Representation — a JSON document describing what to do: part type, summary, modeling steps, assumptions, questions. |
+| **Pydantic**            | Python library that validates data against a schema (like TypeScript types at runtime).                                          |
+| **Step**                | One modeling operation in order — e.g. sketch rectangle, then extrude, then drill holes.                                         |
+| **Step catalog**        | Allowed operation names (`sketch_rectangle`, `extrude`, `hole_pattern_corners`, mates, etc.).                                    |
+| **Dependency (`from`)** | A step that needs output from a previous step — e.g. extrude must reference the sketch step id.                                  |
+| **Validator**           | Code that checks IR dicts and returns a typed object or structured errors.                                                       |
+
 
 ## What the user will experience
 
@@ -48,9 +50,9 @@ Models for: `IntentIR`, `IRTarget`, `IRContext`, `IRQuestion`, `IRAssumption`, `
 
 Three steps aligned with the canonical example:
 
-1. `sketch_rectangle` — 100×50 mm on XY plane  
-2. `extrude` — 6 mm, from sketch  
-3. `hole_pattern_corners` — 6 mm diameter, 8 mm offset  
+1. `sketch_rectangle` — 100×50 mm on XY plane
+2. `extrude` — 6 mm, from sketch
+3. `hole_pattern_corners` — 6 mm diameter, 8 mm offset
 
 ### Tests (`tests/backend/test_intent_ir_validation.py`)
 

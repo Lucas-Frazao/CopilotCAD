@@ -1,10 +1,14 @@
-# CopilotCAD — Feature Roadmap
+# CopilotCAD — Feature Roadmap (v0.01)
+
+## About this document
+
+This roadmap lists **features planned for CopilotCAD version 0.01 only**. CopilotCAD is living software; future versions will have their own roadmaps. Scope and vision for v0.01: `docs/Docs_001/scope_001.md`. Architecture: `docs/Docs_001/architecture_001.md`. Tech stack: `docs/Docs_001/tech_stack_001.md`.
 
 ## Guiding principle
 
-Every feature must serve the core product thesis: English authoring → strict Intent IR → traceable parametric CAD. Features that do not serve that thesis do not belong in MVP.
+Every feature must serve the core product thesis: English authoring → strict Intent IR → traceable parametric CAD. Features that do not serve that thesis do not belong in the v0.01 MVP.
 
-MVP is considered complete when a solo engineer can: start a local project, describe a part or small hardware concept in English, have the system create and manage one or more parametric parts and a small assembly through chat, and export the result to STEP/IGES with a full local workspace preserved.
+The v0.01 MVP is considered complete when a solo engineer can: start a local project, describe a part or small hardware concept in English, have the system create and manage one or more parametric parts and a small assembly through chat, and export the result to STEP/IGES with a full local workspace preserved.
 
 ---
 

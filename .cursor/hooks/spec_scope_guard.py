@@ -76,7 +76,7 @@ def main() -> int:
             "permission": "deny",
             "user_message": f"Edit blocked: {path} matches protected prefix {blocked_match}.",
             "agent_message": (
-                "Do not modify docs/feature_roadmap.md or docs/architecture.md "
+                "Do not modify docs/Docs_001/feature_roadmap_001.md or docs/Docs_001/architecture_001.md "
                 "unless the user explicitly asked to edit those docs."
             ),
         }

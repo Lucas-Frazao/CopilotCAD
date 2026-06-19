@@ -1,4 +1,8 @@
-# CopilotCAD — Tech Stack
+# CopilotCAD — Tech Stack (v0.01)
+
+## About this document
+
+This document describes the **technology choices for CopilotCAD version 0.01 only**. CopilotCAD is living software; future versions may change stack decisions. Scope and vision for v0.01: `docs/Docs_001/scope_001.md`. Architecture: `docs/Docs_001/architecture_001.md`. Roadmap: `docs/Docs_001/feature_roadmap_001.md`.
 
 ## Summary
 
@@ -166,10 +170,14 @@ The `.cad` file is a JSON document storing:
 
 ```
 CopilotCAD/
-├── docs/                          # Product docs (this file lives here)
-│   ├── architecture.md
-│   ├── tech_stack.md
-│   └── feature_roadmap.md
+├── docs/                          # Product docs
+│   └── Docs_001/                  # v0.01 scope, architecture, roadmap, tech stack
+│       ├── scope_001.md
+│       ├── architecture_001.md
+│       ├── tech_stack_001.md
+│       └── feature_roadmap_001.md
+├── specs/                         # Feature specs
+│   └── specs_001/                 # v0.01 feature specs (F-000–F-027)
 ├── pdd_methodology_full_guide.md  # Existing PDD reference
 ├── frontend/                      # Electron + React app
 │   ├── electron/

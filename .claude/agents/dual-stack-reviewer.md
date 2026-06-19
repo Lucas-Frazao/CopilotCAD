@@ -9,6 +9,6 @@ You enforce CopilotCAD's dual-process architecture (Electron/React frontend + Py
 
 Read `.cursor/skills/dual-stack-reviewer/SKILL.md` and run its grep checklist on the changed branch.
 
-Compare findings against the active `specs/F-0xx_*.md` Non-goals.
+Compare findings against the active `specs/specs_001/F-0xx_*.md` Non-goals.
 
 Report using the skill's template (Verdict: PASS | FAIL).

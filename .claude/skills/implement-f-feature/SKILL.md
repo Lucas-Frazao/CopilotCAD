@@ -2,7 +2,7 @@
 name: implement-f-feature
 description: >-
   Implements a CopilotCAD F-0xx feature using spec-driven development. Reads
-  specs/F-0xx_*.md and docs, sets feature scope, implements only what the spec
+  specs/specs_001/F-0xx_*.md and docs, sets feature scope, implements only what the spec
   allows, runs backend tests, and updates spec status. Use when the user asks to
   implement F-000, F-001, F-003, or any F-0xx feature after spec approval.
 ---
@@ -12,16 +12,16 @@ description: >-
 ## Prerequisites
 
 - User has approved the spec for this feature (or explicitly asked to implement).
-- Spec exists at `specs/F-<id>_<name>.md`.
+- Spec exists at `specs/specs_001/F-<id>_<name>.md`.
 
 ## Workflow
 
 Copy and track:
 
 ```text
-- [ ] Read specs/F-0xx_*.md (full contract)
-- [ ] Read matching section in docs/feature_roadmap.md
-- [ ] Read relevant docs/architecture.md sections (do not edit unless asked)
+- [ ] Read specs/specs_001/F-0xx_*.md (full contract)
+- [ ] Read matching section in docs/Docs_001/feature_roadmap_001.md
+- [ ] Read relevant docs/Docs_001/architecture_001.md sections (do not edit unless asked)
 - [ ] Set .cursor/feature-scope.json for this feature
 - [ ] Implement only files/requirements in the spec
 - [ ] Run verify-backend skill or script
@@ -30,7 +30,7 @@ Copy and track:
 
 ## Step 1 — Load contract
 
-1. Find `specs/F-<id>_*.md`.
+1. Find `specs/specs_001/F-<id>_*.md`.
 2. Read Summary, Requirements, Data model, Acceptance criteria, Non-goals.
 3. If spec conflicts with roadmap/architecture, STOP and report conflict.
 
@@ -45,9 +45,9 @@ Edit `.cursor/feature-scope.json`:
     "backend/engine/",
     "backend/kernel/",
     "tests/backend/",
-    "specs/"
+    "specs/specs_001/"
   ],
-  "blocked_prefixes": ["docs/feature_roadmap.md", "docs/architecture.md"],
+  "blocked_prefixes": ["docs/Docs_001/feature_roadmap_001.md", "docs/Docs_001/architecture_001.md"],
   "notes": "Backend-only feature; no frontend/IPC unless spec requires."
 }
 ```
@@ -61,7 +61,7 @@ Architecture boundaries (always):
 - OCCT imports only in `backend/kernel/occt_bridge.py`.
 - Frontend never writes project files; backend owns filesystem.
 - No new JSON-RPC methods unless the feature spec requires IPC changes.
-- Do not edit `docs/feature_roadmap.md` or `docs/architecture.md` unless user explicitly asked.
+- Do not edit `docs/Docs_001/feature_roadmap_001.md` or `docs/Docs_001/architecture_001.md` unless user explicitly asked.
 
 Match existing code style in surrounding modules.
 
@@ -85,7 +85,7 @@ Or ask the user to run `/verify-backend`.
 
 **User:** "Implement F-004 per the approved spec."
 
-1. Read `specs/F-004_*.md`
+1. Read `specs/specs_001/F-004_*.md`
 2. Set feature-scope for `backend/engine/`, `tests/backend/`
 3. Implement executor + handlers per spec only
 4. Run verify-backend

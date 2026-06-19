@@ -4,9 +4,9 @@ Spec-driven desktop CAD IDE: Electron/React/TypeScript frontend + Python JSON-RP
 
 ## Workflow
 
-- Features are **F-0xx** in `docs/feature_roadmap.md`.
-- Contracts live in `specs/F-0xx_<name>.md` — **do not implement** until the user approves the spec.
-- Do not edit `docs/feature_roadmap.md` or `docs/architecture.md` unless the user explicitly asks.
+- Features are **F-0xx** in `docs/Docs_001/feature_roadmap_001.md`.
+- Contracts live in `specs/specs_001/F-0xx_<name>.md` — **do not implement** until the user approves the spec.
+- Do not edit `docs/Docs_001/feature_roadmap_001.md` or `docs/Docs_001/architecture_001.md` unless the user explicitly asks.
 
 ## Architecture boundaries
 

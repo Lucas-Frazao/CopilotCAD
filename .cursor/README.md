@@ -106,7 +106,7 @@ uv pip install ruff
 
 On **Write / StrReplace / ApplyPatch / EditNotebook**:
 
-- **Blocks** edits to `docs/feature_roadmap.md` and `docs/architecture.md` (always).
+- **Blocks** edits to `docs/Docs_001/feature_roadmap_001.md` and `docs/Docs_001/architecture_001.md` (always).
 - **Asks** for confirmation if `.cursor/feature-scope.json` has `feature` + `allowed_prefixes` and the edit path is outside allowed prefixes.
 
 **Set scope for a feature:**
@@ -114,8 +114,8 @@ On **Write / StrReplace / ApplyPatch / EditNotebook**:
 ```json
 {
   "feature": "F-004",
-  "allowed_prefixes": ["backend/engine/", "tests/backend/", "specs/"],
-  "blocked_prefixes": ["docs/feature_roadmap.md", "docs/architecture.md"],
+  "allowed_prefixes": ["backend/engine/", "tests/backend/", "specs/specs_001/"],
+  "blocked_prefixes": ["docs/Docs_001/feature_roadmap_001.md", "docs/Docs_001/architecture_001.md"],
   "notes": "Backend-only; no frontend."
 }
 ```

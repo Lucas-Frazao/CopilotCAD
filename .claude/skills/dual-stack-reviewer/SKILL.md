@@ -69,7 +69,7 @@ Run these greps (or equivalent) on the changed branch:
 
 1. `git diff main...HEAD --name-only` (or current branch vs main).
 2. Run checklist on changed paths.
-3. Cross-check against active `specs/F-0xx_*.md` Non-goals.
+3. Cross-check against active `specs/specs_001/F-0xx_*.md` Non-goals.
 4. Report using template above.
 
 ## Optional: launch code-reviewer subagent

@@ -1,20 +1,32 @@
-# CopilotCAD — Product Vision
+# CopilotCAD — Scope & Vision (v0.01)
 
-## One-line product promise
+## About this document
 
-**CopilotCAD lets you author hardware in English and compile it into structured, editable CAD. A cursor for CAD**
+CopilotCAD is **living software** — it will receive many updates over time. This file is **Scope 001**: the scope and vision for **version 0.01 only**. It is not a permanent definition of the entire product.
+
+Future releases will have their own scope documents (`scope_002.md`, etc.). When this document describes long-term direction (for example business model or editions), that content is **aspirational** unless it also appears under **v0.01 scope** or **Definition of v0.01 success**.
+
+**Related v0.01 docs:** `docs/Docs_001/architecture_001.md`, `docs/Docs_001/tech_stack_001.md`, `docs/Docs_001/feature_roadmap_001.md`.
+
+> **Note:** Inside a **user project**, PDD still uses a separate artifact called **Product Vision** at `docs/product_vision.md` (created via `/vision`). That is a project document, not this repo file.
+
+---
+
+## One-line promise (v0.01)
+
+**CopilotCAD v0.01 lets you author hardware in English and compile it into structured, editable CAD. A cursor for CAD.**
 
 Not prompt-to-shape. Intent-to-CAD.
 
 ---
 
-## Product definition
+## What v0.01 is
 
-CopilotCAD is a local-first, chat-native CAD IDE for solo engineers and students building hardware projects. It combines a VS Code-inspired workspace, a strict intermediate representation (Intent IR) for all write operations, and a Part-Driven Design (PDD) methodology layer that keeps intent, interfaces, assumptions, and geometry connected instead of scattering them across disconnected files and tools.
+CopilotCAD v0.01 is a local-first, chat-native CAD IDE for solo engineers and students building hardware projects. It combines a VS Code-inspired workspace, a strict intermediate representation (Intent IR) for all write operations, and a Part-Driven Design (PDD) methodology layer that keeps intent, interfaces, assumptions, and geometry connected instead of scattering them across disconnected files and tools.
 
 Local-first means files live on disk, no cloud is required to work, and there is no cloud sync option. The project is always owned by the user on their own machine.
 
-The product is not positioned as "magic text-to-CAD." It is positioned as an engineering authoring environment where English is the front-end language, but geometry creation only happens after the request has been compiled into a strict schema capturing intent, assumptions, constraints, interfaces, and modeling steps.
+v0.01 is not positioned as "magic text-to-CAD." It is an engineering authoring environment where English is the front-end language, but geometry creation only happens after the request has been compiled into a strict schema capturing intent, assumptions, constraints, interfaces, and modeling steps.
 
 ---
 
@@ -33,21 +45,21 @@ PDD addresses this by treating each part as an intent contract containing:
 - Validation criteria
 - Revision and maturity status
 
-This makes CopilotCAD more than a geometry editor. It becomes a hardware IDE where the part is the core engineering object, the workspace is the project container, and the AI operates as a constrained assistant over structured artifacts rather than a freeform shape generator.
+v0.01 is the **first slice** of that vision: a hardware IDE where the part is the core engineering object, the workspace is the project container, and the AI operates as a constrained assistant over structured artifacts rather than a freeform shape generator.
 
 ---
 
-## Target user
+## Target user (v0.01)
 
-The primary user for v1 is a **solo engineer or student building hardware projects independently**.
+The primary user for v0.01 is a **solo engineer or student building hardware projects independently**.
 
-The product is not initially aimed at large teams, enterprise CAD departments, or production machine shops. The first design center is the technically ambitious individual builder who wants a more structured and AI-native way to create hardware than today's ribbon-heavy CAD interfaces.
+v0.01 is not aimed at large teams, enterprise CAD departments, or production machine shops. The design center is the technically ambitious individual builder who wants a more structured and AI-native way to create hardware than today's ribbon-heavy CAD interfaces.
 
 ---
 
-## Product thesis
+## Design principles for v0.01
 
-CopilotCAD is built on six core beliefs:
+CopilotCAD v0.01 is built on six core beliefs:
 
 1. **English should be the front-end language** for hardware authoring, but only when backed by strict structured representations.
 2. **Every part should be a first-class engineering object**, not just a geometry file.
@@ -58,9 +70,9 @@ CopilotCAD is built on six core beliefs:
 
 ---
 
-## User experience vision
+## User experience vision (v0.01)
 
-A user launches CopilotCAD and sees an IDE closely resembling VS Code:
+A user launches CopilotCAD v0.01 and sees an IDE closely resembling VS Code:
 
 - **Left panel**: project explorer (files/folders) with tabbed panels for Parts, Interfaces, Problems, and History.
 - **Center panel**: 3D model viewport for rendering, navigation, inspection, and selection.
@@ -86,7 +98,7 @@ If the request appears complex or system-like, CopilotCAD suggests PDD and offer
 
 ---
 
-## Interface model
+## Interface model (v0.01)
 
 | Panel | Role |
 |---|---|
@@ -102,7 +114,7 @@ The viewport allows navigation, inspection, and geometry selection to provide co
 
 ---
 
-## Authoring model
+## Authoring model (v0.01)
 
 CopilotCAD uses English as the user-facing authoring language, but all write operations must compile into a strict **Intent IR** object before any geometry or project files are changed.
 
@@ -120,7 +132,7 @@ This compiler-like model ensures geometry changes are inspectable, reproducible,
 
 ---
 
-## PDD strategy
+## PDD strategy (v0.01)
 
 PDD is always suggested but never required. This creates two interaction paths:
 
@@ -134,9 +146,9 @@ The goal is always to aim the user toward PDD because it produces better, more t
 
 ---
 
-## MVP scope
+## v0.01 scope
 
-### In scope for MVP
+### In scope for v0.01
 
 - Local-first desktop project workflow, no cloud.
 - VS Code-like workspace UI: explorer, viewport, chat.
@@ -153,7 +165,7 @@ The goal is always to aim the user toward PDD because it produces better, more t
 - Assumption tracking, diff summaries, and visible history.
 - Problems panel with 7 MVP problem types.
 
-### Out of scope for MVP
+### Out of scope for v0.01
 
 - Full CAM generation.
 - Full 2D drawing workflow.
@@ -168,9 +180,9 @@ The goal is always to aim the user toward PDD because it produces better, more t
 
 ---
 
-## Definition of MVP success
+## Definition of v0.01 success
 
-MVP v1 is successful when a solo engineer can:
+v0.01 is successful when a solo engineer can:
 
 1. Start a local CopilotCAD project.
 2. Describe a part or small hardware concept in English.
@@ -182,9 +194,9 @@ MVP v1 is successful when a solo engineer can:
 
 ---
 
-## Modeling vocabulary (MVP)
+## Modeling vocabulary (v0.01)
 
-The minimum modeling vocabulary for MVP:
+The minimum modeling vocabulary for v0.01:
 
 **Sketch**
 - `sketch_rectangle`
@@ -223,7 +235,7 @@ The minimum modeling vocabulary for MVP:
 
 ---
 
-## Project and file structure
+## Project and file structure (v0.01)
 
 Every CopilotCAD project is a local folder:
 
@@ -246,7 +258,7 @@ Human-facing docs use Markdown. Machine-structured config and spec files use YAM
 
 ---
 
-## Native `.cad` format
+## Native `.cad` format (v0.01)
 
 The `.cad` file is not a shape container. It stores:
 
@@ -259,7 +271,7 @@ STEP and IGES are export targets. `.cad` is the local-first authoring format.
 
 ---
 
-## Problems panel taxonomy (MVP)
+## Problems panel taxonomy (v0.01)
 
 | Problem type | Trigger |
 |---|---|
@@ -273,7 +285,7 @@ STEP and IGES are export targets. `.cad` is the local-first authoring format.
 
 ---
 
-## AI trust and autonomy model
+## AI trust and autonomy model (v0.01)
 
 ### Low-risk actions (execute immediately)
 - Create new feature on existing body.
@@ -301,7 +313,7 @@ When CopilotCAD fails, it must:
 
 ---
 
-## AI personality
+## AI personality (v0.01)
 
 CopilotCAD's AI is adaptive but defaults to:
 
@@ -314,9 +326,9 @@ It does not over-question. It asks only blocking questions, then proceeds with v
 
 ---
 
-## Positioning
+## Positioning (v0.01)
 
-CopilotCAD is not a generic text-to-CAD tool. The product avoids:
+CopilotCAD v0.01 is not a generic text-to-CAD tool. The product avoids:
 
 - "Turn plain English into perfect CAD" framing.
 - "Generate production-ready parts instantly" claims.
@@ -334,7 +346,9 @@ The central value is not that the model generates geometry from words. The centr
 
 ---
 
-## Business model and licensing direction
+## Business model and licensing direction (long-term)
+
+> **Not v0.01 delivery scope.** This section describes direction beyond v0.01. Community edition behavior for v0.01 is defined in v0.01 scope and `docs/Docs_001/architecture_001.md`.
 
 CopilotCAD is designed from the start to support an open-core, Red Hat–inspired business model.
 
@@ -354,13 +368,15 @@ The long-term plan is:
 
 Across all editions, CopilotCAD will keep the same core principles: local-first, user-owned data, and structured, inspectable project artifacts. Paid tiers add more scale, automation, validation, integrations, and support rather than taking away ownership or control from the user.
 
-## Open questions for future iterations
+---
 
-- Exact Intent IR schema (see `docs/architecture.md`).
+## Open questions for v0.01 (and later)
+
+- Exact Intent IR schema (see `docs/Docs_001/architecture_001.md`).
 - Structure of `spec.yaml` and `assumptions.yaml` field-level definitions.
 - Assembly and interface schema detail.
 - Command execution pipeline from prompt to IR to geometry.
-- Review and release lifecycle in MVP.
+- Review and release lifecycle in v0.01.
 - Visual hierarchy and behavior of each UI panel.
 - How manufacturability warnings are surfaced without full CAM.
 - Whether `.cad` geometry cache is per-part or workspace-linked.

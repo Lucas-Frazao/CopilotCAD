@@ -13,7 +13,7 @@ Runs **one feature per iteration** (recommended). Repeat by re-invoking or using
 
 ## Build order (do not skip phases)
 
-Read `docs/feature_roadmap.md` — **Build order summary** at the bottom.
+Read `docs/Docs_001/feature_roadmap_001.md` — **Build order summary** at the bottom.
 
 ```
 Phase 0: F-000 → F-001 → F-002 → F-003 → F-004
@@ -35,7 +35,7 @@ Phase 4: F-022 → … → F-026
 
 ## Step 1 — Find next feature
 
-1. List `specs/F-*.md` and read each `**Status:**` line.
+1. List `specs/specs_001/F-*.md` and read each `**Status:**` line.
 2. Walk build order; the **first** id that is not `Implemented` is `next`.
 3. If no spec file exists for `next`, it still counts — spec must be written first.
 4. If user named a stop id (e.g. "through F-004"), stop after that id is Implemented.
@@ -44,10 +44,10 @@ Phase 4: F-022 → … → F-026
 
 ## Step 2 — Draft spec (if missing or not approved)
 
-1. Read the F-id section in `docs/feature_roadmap.md` (do not edit roadmap).
-2. Read `docs/architecture.md` sections for IPC, kernel, filesystem, frontend boundaries.
+1. Read the F-id section in `docs/Docs_001/feature_roadmap_001.md` (do not edit roadmap).
+2. Read `docs/Docs_001/architecture_001.md` sections for IPC, kernel, filesystem, frontend boundaries.
 3. Read prior specs for data models and dependencies.
-4. Create `specs/F-<id>_<short_name>.md` matching existing spec structure:
+4. Create `specs/specs_001/F-<id>_<short_name>.md` matching existing spec structure:
 
    - Summary (include `**Status:** Draft` or `Pending approval`)
    - Context and goals
@@ -139,6 +139,6 @@ Trigger: manual button, or `git` push to your integration branch after merges.
 
 ## What this loop does NOT do
 
-- Edit `docs/feature_roadmap.md` or `docs/architecture.md` (blocked by scope guard).
+- Edit `docs/Docs_001/feature_roadmap_001.md` or `docs/Docs_001/architecture_001.md` (blocked by scope guard).
 - Skip spec approval by default (spec-driven contract).
 - Guarantee unattended success through Phase 1+ (UI, API keys, E2E need human checks).

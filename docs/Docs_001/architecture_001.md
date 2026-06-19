@@ -1,4 +1,8 @@
-# CopilotCAD — System Architecture
+# CopilotCAD — System Architecture (v0.01)
+
+## About this document
+
+This document describes the **system architecture for CopilotCAD version 0.01 only**. CopilotCAD is living software; later versions may extend or replace parts of this design. Scope and vision for v0.01: `docs/Docs_001/scope_001.md`. Tech stack: `docs/Docs_001/tech_stack_001.md`. Roadmap: `docs/Docs_001/feature_roadmap_001.md`.
 
 ## Overview
 

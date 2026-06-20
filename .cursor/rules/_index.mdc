@@ -1,0 +1,21 @@
+---
+description: CopilotCAD project rules — canonical instructions live in /CLAUDE.md
+alwaysApply: true
+---
+
+# Read /CLAUDE.md
+
+`/CLAUDE.md` at the repo root is the single source of truth for this project
+(architecture, boundaries, commands, and the spec-driven workflow). Read it and
+follow it for all work in this repo.
+
+Most important rules (full detail in `/CLAUDE.md`):
+
+- **Spec-driven:** features are `F-0xx`; do not implement until the user approves
+  the spec in `specs/specs_001/F-0xx_*.md`.
+- **Do not edit** `docs/Docs_001/feature_roadmap_001.md` or
+  `docs/Docs_001/architecture_001.md` unless the user explicitly asks.
+- OCCT imports only in `backend/kernel/occt_bridge.py`; the backend owns the
+  filesystem; renderer stays sandboxed.
+
+When implementing a feature, use the `/implement-f-feature` skill.

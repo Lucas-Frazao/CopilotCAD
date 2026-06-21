@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import FileTree from "../components/FileTree";
 import { listWorkspaceTree, readWorkspaceFile } from "../ipc/bridge";
@@ -19,6 +19,9 @@ export default function ExplorerPanel({
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  // Monotonic token so an earlier, slower file read cannot overwrite the preview
+  // of a file selected later (out-of-order resolution on rapid clicks).
+  const previewRequestRef = useRef(0);
 
   const loadTree = useCallback(async () => {
     if (!workspacePath) {
@@ -63,11 +66,19 @@ export default function ExplorerPanel({
       return;
     }
 
+    const requestId = ++previewRequestRef.current;
     try {
       const result = await readWorkspaceFile(workspacePath, path);
+      // Drop the result if a newer selection has superseded this request.
+      if (requestId !== previewRequestRef.current) {
+        return;
+      }
       setPreviewText(result.contents);
       setError(null);
     } catch (err) {
+      if (requestId !== previewRequestRef.current) {
+        return;
+      }
       setPreviewText(null);
       setError(err instanceof Error ? err.message : String(err));
     }

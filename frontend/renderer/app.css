@@ -9,10 +9,29 @@ body,
 }
 
 .app-shell {
-  display: grid;
-  grid-template-columns: 240px 1fr 360px;
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   min-height: 100vh;
+}
+
+.app-columns {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: 240px 1fr 360px;
+}
+
+.app-banner {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.app-banner-error {
+  background: #5a1d1d;
+  color: #f48771;
+  border-bottom: 1px solid #a53a3a;
 }
 
 .panel-column {

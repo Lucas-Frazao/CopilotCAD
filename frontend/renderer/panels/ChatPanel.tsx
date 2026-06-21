@@ -6,6 +6,15 @@ import ChatMessage from "../components/ChatMessage";
 import SlashCommandPicker from "../components/SlashCommandPicker";
 import { compileIntent, executeIntent } from "../ipc/bridge";
 
+// Monotonic counter for React keys / message ids. Date.now() collided when two
+// messages were created in the same millisecond (e.g. a user turn plus its
+// immediate local reply), producing duplicate keys.
+let messageSeq = 0;
+function nextMessageId(prefix: string): string {
+  messageSeq += 1;
+  return `${prefix}-${messageSeq}`;
+}
+
 const WELCOME: ChatMessageData = {
   id: "welcome",
   role: "assistant",
@@ -59,7 +68,7 @@ export default function ChatPanel({
     }
 
     const userMessage: ChatMessageData = {
-      id: `user-${Date.now()}`,
+      id: nextMessageId("user"),
       role: "user",
       kind: "text",
       text,
@@ -73,7 +82,7 @@ export default function ChatPanel({
       setMessages((prev) => [
         ...prev,
         {
-          id: `assistant-slash-${Date.now()}`,
+          id: nextMessageId("assistant-slash"),
           role: "assistant",
           kind: "slash_hint",
           text: "Slash command recognized (handler not implemented until F-014).",
@@ -87,7 +96,7 @@ export default function ChatPanel({
       setMessages((prev) => [
         ...prev,
         {
-          id: `assistant-chat-${Date.now()}`,
+          id: nextMessageId("assistant-chat"),
           role: "assistant",
           kind: "text",
           text: CONVERSATIONAL_REPLY,
@@ -106,7 +115,7 @@ export default function ChatPanel({
       setMessages((prev) => [
         ...prev,
         {
-          id: `assistant-${Date.now()}`,
+          id: nextMessageId("assistant"),
           role: "assistant",
           kind: "compile_result",
           intent,
@@ -117,7 +126,7 @@ export default function ChatPanel({
       setMessages((prev) => [
         ...prev,
         {
-          id: `assistant-error-${Date.now()}`,
+          id: nextMessageId("assistant-error"),
           role: "assistant",
           kind: "error",
           text: formatCompileError(err),

@@ -1,13 +1,13 @@
 import type {
+  BackendStatus,
   CopilotCADApi,
   CompileIntentResult,
   ExecuteIntentResult,
   IntentIRPayload,
+  RpcEnvelope,
   WorkspaceFileContents,
   WorkspaceTreeNode,
 } from "./types";
-
-const RPC_ERROR_PREFIX = "COPILOTCAD_RPC:";
 
 function getApi(): CopilotCADApi {
   if (typeof window === "undefined" || !window.copilotcad) {
@@ -16,82 +16,30 @@ function getApi(): CopilotCADApi {
   return window.copilotcad;
 }
 
-function extractRpcPayload(message: string): {
-  message?: string;
-  code?: number;
-  data?: unknown;
-} | null {
-  const marker = RPC_ERROR_PREFIX;
-  const index = message.indexOf(marker);
-  if (index === -1) {
-    return null;
+/**
+ * Unwrap a backend RPC envelope: return the value on success, or throw an Error
+ * carrying the original JSON-RPC `code`/`data` on failure. Replaces the previous
+ * brittle approach of stuffing JSON into an Error message behind a magic prefix.
+ */
+function unwrap<T>(envelope: RpcEnvelope<T>): T {
+  if (envelope.ok) {
+    return envelope.value;
   }
-
-  try {
-    return JSON.parse(message.slice(index + marker.length)) as {
-      message?: string;
-      code?: number;
-      data?: unknown;
-    };
-  } catch {
-    return null;
-  }
-}
-
-function normalizeIpcError(err: unknown): Error {
-  if (err instanceof Error) {
-    const rpcPayload = extractRpcPayload(err.message);
-    if (rpcPayload) {
-      const normalized = new Error(rpcPayload.message ?? "Request failed");
-      (normalized as Error & { code?: number; data?: unknown }).code = rpcPayload.code;
-      (normalized as Error & { data?: unknown }).data = rpcPayload.data;
-      return normalized;
-    }
-
-    if (err.message.startsWith(RPC_ERROR_PREFIX)) {
-      try {
-        const payload = JSON.parse(err.message.slice(RPC_ERROR_PREFIX.length)) as {
-          message?: string;
-          code?: number;
-          data?: unknown;
-        };
-        const normalized = new Error(payload.message ?? "Request failed");
-        (normalized as Error & { code?: number; data?: unknown }).code = payload.code;
-        (normalized as Error & { data?: unknown }).data = payload.data;
-        return normalized;
-      } catch {
-        return err;
-      }
-    }
-
-    if (err.message.includes("Intent IR validation failed")) {
-      const normalized = new Error("Intent IR validation failed");
-      (normalized as Error & { data?: unknown }).data = {
-        error_type: "validation",
-        message: "Intent IR validation failed",
-      };
-      return normalized;
-    }
-
-    return err;
-  }
-
-  return new Error(String(err));
+  const error = new Error(envelope.error.message) as Error & { code?: number; data?: unknown };
+  error.code = envelope.error.code;
+  error.data = envelope.error.data;
+  throw error;
 }
 
 export async function ping(): Promise<string> {
-  return getApi().ping();
+  return unwrap(await getApi().ping());
 }
 
 export async function compileIntent(
   message: string,
   context?: Record<string, unknown>,
 ): Promise<CompileIntentResult> {
-  try {
-    return await getApi().compileIntent(message, context);
-  } catch (err) {
-    throw normalizeIpcError(err);
-  }
+  return unwrap(await getApi().compileIntent(message, context));
 }
 
 function isExecuteIntentPayload(data: unknown): data is ExecuteIntentResult {
@@ -102,18 +50,21 @@ function isExecuteIntentPayload(data: unknown): data is ExecuteIntentResult {
   return typeof record.success === "boolean" && Array.isArray(record.step_ids);
 }
 
-/** Backend returns execution payload in JSON-RPC error data when execution fails. */
+/**
+ * Execute a compiled IR. On an execution failure the backend returns the full
+ * execution payload (steps + problems) as the JSON-RPC error `data`; we surface
+ * that as a normal result so the chat panel can render the diff + problems.
+ */
 export async function executeIntent(ir: IntentIRPayload): Promise<ExecuteIntentResult> {
   try {
-    const result = await getApi().executeIntent(ir as unknown as Record<string, unknown>);
-    return normalizeExecuteResult(result);
+    const value = unwrap(await getApi().executeIntent(ir as unknown as Record<string, unknown>));
+    return normalizeExecuteResult(value);
   } catch (err) {
-    const normalized = normalizeIpcError(err);
-    const withData = normalized as Error & { data?: unknown };
+    const withData = err as Error & { data?: unknown };
     if (isExecuteIntentPayload(withData.data)) {
       return normalizeExecuteResult(withData.data);
     }
-    throw normalized;
+    throw err;
   }
 }
 
@@ -130,30 +81,24 @@ function normalizeExecuteResult(raw: unknown): ExecuteIntentResult {
 }
 
 export async function getWorkspacePath(): Promise<string> {
-  const api = getApi() as CopilotCADApi & { getWorkspacePath?: () => Promise<string> };
-  if (typeof api.getWorkspacePath !== "function") {
-    throw new Error("Workspace path is not available in this environment");
-  }
-  return api.getWorkspacePath();
+  return getApi().getWorkspacePath();
 }
 
-export async function listWorkspaceTree(
-  workspacePath: string,
-): Promise<WorkspaceTreeNode[]> {
-  try {
-    return await getApi().listWorkspaceTree(workspacePath);
-  } catch (err) {
-    throw normalizeIpcError(err);
-  }
+export async function getBackendStatus(): Promise<BackendStatus> {
+  return getApi().getBackendStatus();
+}
+
+export function onBackendStatus(callback: (status: BackendStatus) => void): () => void {
+  return getApi().onBackendStatus(callback);
+}
+
+export async function listWorkspaceTree(workspacePath: string): Promise<WorkspaceTreeNode[]> {
+  return unwrap(await getApi().listWorkspaceTree(workspacePath));
 }
 
 export async function readWorkspaceFile(
   workspacePath: string,
   relativePath: string,
 ): Promise<WorkspaceFileContents> {
-  try {
-    return await getApi().readWorkspaceFile(workspacePath, relativePath);
-  } catch (err) {
-    throw normalizeIpcError(err);
-  }
+  return unwrap(await getApi().readWorkspaceFile(workspacePath, relativePath));
 }

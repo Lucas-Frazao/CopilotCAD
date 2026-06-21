@@ -63,16 +63,34 @@ export interface ExecuteIntentResult {
   problems: ProblemPayload[];
 }
 
+/**
+ * Result envelope returned by the main process for every backend RPC. Unlike a
+ * thrown error, a plain object survives Electron's structured-clone IPC intact, so
+ * the JSON-RPC `code`/`data` reach the renderer without string-encoding hacks.
+ */
+export type RpcEnvelope<T> =
+  | { ok: true; value: T }
+  | { ok: false; error: { message: string; code?: number; data?: unknown } };
+
+/** Backend health as reported by the main process. */
+export type BackendStatus = "starting" | "ready" | "down";
+
 export interface CopilotCADApi {
-  ping(): Promise<string>;
+  ping(): Promise<RpcEnvelope<string>>;
   getWorkspacePath(): Promise<string>;
-  compileIntent(message: string, context?: Record<string, unknown>): Promise<CompileIntentResult>;
-  executeIntent(ir: Record<string, unknown>): Promise<ExecuteIntentResult>;
-  listWorkspaceTree(workspacePath: string): Promise<WorkspaceTreeNode[]>;
+  getBackendStatus(): Promise<BackendStatus>;
+  /** Subscribe to backend status changes; returns an unsubscribe function. */
+  onBackendStatus(callback: (status: BackendStatus) => void): () => void;
+  compileIntent(
+    message: string,
+    context?: Record<string, unknown>,
+  ): Promise<RpcEnvelope<CompileIntentResult>>;
+  executeIntent(ir: Record<string, unknown>): Promise<RpcEnvelope<ExecuteIntentResult>>;
+  listWorkspaceTree(workspacePath: string): Promise<RpcEnvelope<WorkspaceTreeNode[]>>;
   readWorkspaceFile(
     workspacePath: string,
     relativePath: string,
-  ): Promise<WorkspaceFileContents>;
+  ): Promise<RpcEnvelope<WorkspaceFileContents>>;
 }
 
 /** Workspace explorer tree node (F-009). */

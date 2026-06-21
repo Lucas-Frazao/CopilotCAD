@@ -1,14 +1,21 @@
 ---
-description: CopilotCAD spec-driven development — specs are source of truth; code follows specs/specs_001/F-0xx_*.md
+description: CopilotCAD canonical agent rules — read AGENTS.md (single source of truth)
 alwaysApply: true
 ---
 
-# Spec-driven development
+# CopilotCAD rules
 
-- Features are **F-000, F-001, …** in `docs/Docs_001/feature_roadmap_001.md`.
-- Each feature has a contract in `specs/specs_001/F-0xx_<name>.md`.
-- **Do not implement** until the user approves the spec for that feature.
-- **Do not edit** `docs/Docs_001/feature_roadmap_001.md` or `docs/Docs_001/architecture_001.md` unless the user explicitly asks.
-- When implementing F-0xx: read the spec, set `.cursor/feature-scope.json`, run verify-backend after changes.
+The full, canonical rule set lives in **`AGENTS.md`** at the repo root. Read it before
+making changes. The essentials it covers:
 
-Use skill `/implement-f-feature` when starting feature implementation.
+- **Spec-driven:** features are F-0xx in `docs/Docs_001/feature_roadmap_001.md`; each has
+  a contract in `specs/specs_001/F-0xx_*.md`. Do not implement until the user approves
+  the spec. Do not edit `feature_roadmap_001.md` or `architecture_001.md` unless asked.
+- **Architecture boundaries:** OCCT only in `backend/kernel/occt_bridge.py`; the frontend
+  never writes project files; the renderer stays sandboxed (`nodeIntegration: false`,
+  `contextIsolation: true`); no new JSON-RPC methods unless the spec requires them.
+- When implementing F-0xx: read the spec, set `.cursor/feature-scope.json`, then run
+  `verify-backend` and/or `verify-frontend`.
+
+Use skill `implement-f-feature` when starting feature implementation. Keep rule changes
+in `AGENTS.md` so Cursor and Claude Code never diverge.

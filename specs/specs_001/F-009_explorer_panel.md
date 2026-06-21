@@ -4,7 +4,7 @@
 
 Add a **file explorer** on the left side of the app so users can see everything CopilotCAD has created on disk — documents, parts, assemblies, and exports — and open files to read them without leaving the app.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

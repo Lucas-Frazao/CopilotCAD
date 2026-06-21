@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import sys
+from pathlib import Path
 from typing import Any
 
 from jsonrpcserver import Error, InvalidParams, Success, dispatch, method
@@ -13,6 +14,12 @@ from ir.validator import IntentIRValidationError, validate_intent_ir
 from llm.claude_adapter import ClaudeAdapter
 from llm.errors import LLMConfigurationError
 from problems.engine import evaluate_problems, problems_to_dicts
+from project.workspace import WorkspaceError
+from project.workspace_tree import (
+    WorkspacePathError,
+    list_workspace_tree as build_workspace_tree,
+    read_workspace_file as read_workspace_text,
+)
 
 _default_adapter: ClaudeAdapter | None = None
 
@@ -60,6 +67,28 @@ def compile_intent(message: str, context: dict[str, Any] | None = None) -> Succe
         return Error(-32603, exc.message, exc.to_dict())
 
     return Success(intent.model_dump(by_alias=True))
+
+
+@method
+def list_workspace_tree(workspace_path: str) -> Success | Error:
+    try:
+        tree = build_workspace_tree(Path(workspace_path))
+    except WorkspaceError as exc:
+        return Error(-32602, str(exc))
+
+    return Success(tree)
+
+
+@method
+def read_workspace_file(workspace_path: str, relative_path: str) -> Success | Error:
+    try:
+        contents = read_workspace_text(Path(workspace_path), relative_path)
+    except WorkspacePathError as exc:
+        return Error(-32602, str(exc))
+    except WorkspaceError as exc:
+        return Error(-32602, str(exc))
+
+    return Success({"contents": contents})
 
 
 def main() -> None:

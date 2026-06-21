@@ -11,6 +11,14 @@ function getProjectRoot(): string {
   return path.resolve(__dirname, "..", "..");
 }
 
+function getWorkspacePath(): string {
+  const fromEnv = process.env.COPILOTCAD_WORKSPACE;
+  if (fromEnv) {
+    return path.resolve(fromEnv);
+  }
+  return path.join(getProjectRoot(), "example_project");
+}
+
 function getPythonExecutable(backendDir: string): string {
   const venvPython =
     process.platform === "win32"
@@ -156,6 +164,7 @@ app.whenReady().then(async () => {
       throw new Error(`COPILOTCAD_RPC:${payload}`);
     }
   });
+  ipcMain.handle("copilotcad:getWorkspacePath", () => getWorkspacePath());
 
   await pingBackend();
   createWindow();

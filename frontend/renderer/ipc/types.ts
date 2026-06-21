@@ -65,6 +65,24 @@ export interface ExecuteIntentResult {
 
 export interface CopilotCADApi {
   ping(): Promise<string>;
+  getWorkspacePath(): Promise<string>;
   compileIntent(message: string, context?: Record<string, unknown>): Promise<CompileIntentResult>;
   executeIntent(ir: Record<string, unknown>): Promise<ExecuteIntentResult>;
+  listWorkspaceTree(workspacePath: string): Promise<WorkspaceTreeNode[]>;
+  readWorkspaceFile(
+    workspacePath: string,
+    relativePath: string,
+  ): Promise<WorkspaceFileContents>;
+}
+
+/** Workspace explorer tree node (F-009). */
+export interface WorkspaceTreeNode {
+  name: string;
+  path: string;
+  type: "file" | "dir";
+  children?: WorkspaceTreeNode[];
+}
+
+export interface WorkspaceFileContents {
+  contents: string;
 }

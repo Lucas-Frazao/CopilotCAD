@@ -3,6 +3,8 @@ import type {
   CompileIntentResult,
   ExecuteIntentResult,
   IntentIRPayload,
+  WorkspaceFileContents,
+  WorkspaceTreeNode,
 } from "./types";
 
 const RPC_ERROR_PREFIX = "COPILOTCAD_RPC:";
@@ -125,4 +127,33 @@ function normalizeExecuteResult(raw: unknown): ExecuteIntentResult {
     error: (record.error as string | null | undefined) ?? null,
     problems,
   };
+}
+
+export async function getWorkspacePath(): Promise<string> {
+  const api = getApi() as CopilotCADApi & { getWorkspacePath?: () => Promise<string> };
+  if (typeof api.getWorkspacePath !== "function") {
+    throw new Error("Workspace path is not available in this environment");
+  }
+  return api.getWorkspacePath();
+}
+
+export async function listWorkspaceTree(
+  workspacePath: string,
+): Promise<WorkspaceTreeNode[]> {
+  try {
+    return await getApi().listWorkspaceTree(workspacePath);
+  } catch (err) {
+    throw normalizeIpcError(err);
+  }
+}
+
+export async function readWorkspaceFile(
+  workspacePath: string,
+  relativePath: string,
+): Promise<WorkspaceFileContents> {
+  try {
+    return await getApi().readWorkspaceFile(workspacePath, relativePath);
+  } catch (err) {
+    throw normalizeIpcError(err);
+  }
 }

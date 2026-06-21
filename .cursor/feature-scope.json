@@ -1,9 +1,6 @@
 {
-  "feature": "F-008",
-  "allowed_prefixes": [
-    "frontend/",
-    "specs/specs_001/"
-  ],
+  "feature": null,
+  "allowed_prefixes": [],
   "blocked_prefixes": ["docs/Docs_001/feature_roadmap_001.md", "docs/Docs_001/architecture_001.md"],
-  "notes": "F-008 chat panel UI; no backend changes."
+  "notes": ""
 }

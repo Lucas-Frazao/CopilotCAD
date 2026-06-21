@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { ExecuteIntentResult, IntentIRPayload } from "./types";
+import type {
+  ExecuteIntentResult,
+  IntentIRPayload,
+  WorkspaceFileContents,
+  WorkspaceTreeNode,
+} from "./types";
 
 describe("ipc types", () => {
   it("IntentIRPayload includes summary and target", () => {
@@ -32,5 +37,27 @@ describe("ipc types", () => {
 
     expect(result.problems[0].type).toBe("traceability_gap");
     expect(result.step_ids).toEqual(["step_1"]);
+  });
+
+  it("WorkspaceTreeNode supports nested directories", () => {
+    const node: WorkspaceTreeNode = {
+      name: "parts",
+      path: "parts",
+      type: "dir",
+      children: [
+        {
+          name: "spec.yaml",
+          path: "parts/mounting_plate/spec.yaml",
+          type: "file",
+        },
+      ],
+    };
+
+    expect(node.children?.[0].type).toBe("file");
+  });
+
+  it("WorkspaceFileContents wraps text payload", () => {
+    const payload: WorkspaceFileContents = { contents: "hello" };
+    expect(payload.contents).toBe("hello");
   });
 });

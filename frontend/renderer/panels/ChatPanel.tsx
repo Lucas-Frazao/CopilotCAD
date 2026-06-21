@@ -13,7 +13,11 @@ const WELCOME: ChatMessageData = {
   text: "What to do first? Ask about this CAD model or we can start creating one.",
 };
 
-export default function ChatPanel() {
+export default function ChatPanel({
+  onWorkspaceChanged,
+}: {
+  onWorkspaceChanged?: () => void;
+}) {
   const [messages, setMessages] = useState<ChatMessageData[]>([WELCOME]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
@@ -96,6 +100,9 @@ export default function ChatPanel() {
     try {
       const intent = await compileIntent(text);
       const execution = await executeIntent(intent);
+      if (execution.success) {
+        onWorkspaceChanged?.();
+      }
       setMessages((prev) => [
         ...prev,
         {

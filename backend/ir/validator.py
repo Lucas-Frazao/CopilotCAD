@@ -4,6 +4,7 @@ from typing import Any
 
 from pydantic import ValidationError
 
+from ir.step_params import validate_step_params
 from schemas.intent_ir import IntentIR, MVP_STEP_OPS
 
 
@@ -115,6 +116,10 @@ def validate_intent_ir(data: dict[str, Any]) -> IntentIR:
 
     dependency_errors = _validate_step_dependency_graph(data.get("steps", []))
     field_errors.extend(dependency_errors)
+
+    # Reject geometrically invalid params (negative/zero dims, missing/non-numeric)
+    # for implemented ops before the executor or kernel sees them.
+    field_errors.extend(validate_step_params(data.get("steps", [])))
 
     try:
         intent = IntentIR.model_validate(data)

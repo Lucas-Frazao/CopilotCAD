@@ -8,7 +8,8 @@ Project-level skills, hooks, and MCP configuration for spec-driven development o
 |------|-----|
 | Run the full pipeline (spec → implement → next) | `/feature-pipeline-loop` — see skill for one-iteration vs unattended prompts |
 | Implement a feature | Chat: **Implement F-004** (after spec approved) or invoke skill **implement-f-feature** |
-| Run backend tests | `/verify-backend` or `.cursor/skills/verify-backend/scripts/verify-backend.ps1` |
+| Run backend tests | `/verify-backend` — `verify-backend.ps1` (Windows) or `verify-backend.sh` (macOS/Linux) |
+| Run frontend tests + typecheck | `/verify-frontend` — `verify-frontend.ps1` (Windows) or `verify-frontend.sh` (macOS/Linux) |
 | Review a spec before coding | `/spec-reviewer` with feature id |
 | Review a PR for architecture | `/dual-stack-reviewer` |
 | Set scoped edits | Edit `.cursor/feature-scope.json` (see below) |
@@ -59,10 +60,22 @@ Project skills live in `.cursor/skills/`.
 
 **Invoke:** `/verify-backend` (user-only; won't auto-run).
 
-**Does:** Runs `pytest -v` from `backend/` using `.venv`.
+**Does:** Runs `pytest -v` from `backend/` using `.venv`. Cross-platform: `.ps1` for
+Windows, `.sh` for macOS/Linux.
 
 ```powershell
 .cursor\skills\verify-backend\scripts\verify-backend.ps1
+```
+
+### `verify-frontend`
+
+**Invoke:** `/verify-frontend` (user-only; won't auto-run).
+
+**Does:** Runs `npm run typecheck` (Electron + renderer `tsc`) and `npm test` (vitest)
+from `frontend/`. Cross-platform: `.ps1` for Windows, `.sh` for macOS/Linux.
+
+```powershell
+.cursor\skills\verify-frontend\scripts\verify-frontend.ps1
 ```
 
 ### `spec-reviewer`

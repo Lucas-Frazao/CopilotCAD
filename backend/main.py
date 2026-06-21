@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import sys
+from pathlib import Path
 from typing import Any
 
 from jsonrpcserver import Error, InvalidParams, Success, dispatch, method
@@ -13,6 +15,12 @@ from ir.validator import IntentIRValidationError, validate_intent_ir
 from llm.claude_adapter import ClaudeAdapter
 from llm.errors import LLMConfigurationError
 from problems.engine import evaluate_problems, problems_to_dicts
+from project.workspace import WorkspaceError
+from project.workspace_tree import (
+    WorkspacePathError,
+    list_workspace_tree as build_workspace_tree,
+    read_workspace_file as read_workspace_text,
+)
 
 _default_adapter: ClaudeAdapter | None = None
 
@@ -62,13 +70,56 @@ def compile_intent(message: str, context: dict[str, Any] | None = None) -> Succe
     return Success(intent.model_dump(by_alias=True))
 
 
+@method
+def list_workspace_tree(workspace_path: str) -> Success | Error:
+    try:
+        tree = build_workspace_tree(Path(workspace_path))
+    except WorkspaceError as exc:
+        return Error(-32602, str(exc))
+
+    return Success(tree)
+
+
+@method
+def read_workspace_file(workspace_path: str, relative_path: str) -> Success | Error:
+    try:
+        contents = read_workspace_text(Path(workspace_path), relative_path)
+    except WorkspacePathError as exc:
+        return Error(-32602, str(exc))
+    except WorkspaceError as exc:
+        return Error(-32602, str(exc))
+
+    return Success({"contents": contents})
+
+
+def _error_response(message: str) -> str:
+    """Build a JSON-RPC error envelope for failures outside method dispatch."""
+    return json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": None,
+            "error": {"code": -32603, "message": message},
+        }
+    )
+
+
+def process_request(line: str) -> str | None:
+    """Dispatch one JSON-RPC line, converting any unexpected failure into an
+    error response so a single bad request can never tear down the server loop."""
+    try:
+        return dispatch(line)
+    except Exception as exc:  # noqa: BLE001 — keep the stdio loop alive at all costs
+        return _error_response(f"Internal server error: {exc}")
+
+
 def main() -> None:
+    """Serve JSON-RPC requests line-by-line over stdio until stdin closes."""
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
 
-        response = dispatch(line)
+        response = process_request(line)
         if response:
             sys.stdout.write(response + "\n")
             sys.stdout.flush()

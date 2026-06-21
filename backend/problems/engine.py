@@ -4,7 +4,7 @@ from typing import Any
 
 from engine.execution_result import ExecutionResult
 from schemas.intent_ir import IntentIR
-from schemas.problem import Problem, ProblemSeverity, ProblemType
+from schemas.problem import Problem
 
 
 def problems_to_dicts(problems: list[Problem]) -> list[dict[str, Any]]:
@@ -119,10 +119,11 @@ def _check_invalid_mate(intent: IntentIR) -> list[Problem]:
         if not step.op.startswith("mate_"):
             continue
         params = step.params
+        # An empty params dict is already covered by both checks below, so the
+        # two missing-key tests fully describe an incomplete mate.
         missing_target = "target" not in params
         missing_mate_type = "mate_type" not in params
-        empty_params = len(params) == 0
-        if missing_target or missing_mate_type or empty_params:
+        if missing_target or missing_mate_type:
             problems.append(
                 Problem(
                     id=f"invalid_mate:{step.id}",

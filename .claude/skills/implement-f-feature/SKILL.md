@@ -24,7 +24,7 @@ Copy and track:
 - [ ] Read relevant docs/Docs_001/architecture_001.md sections (do not edit unless asked)
 - [ ] Set .cursor/feature-scope.json for this feature
 - [ ] Implement only files/requirements in the spec
-- [ ] Run verify-backend skill or script
+- [ ] Run verify-backend and/or verify-frontend (match the stack you changed)
 - [ ] Update spec Status to Implemented when acceptance criteria pass
 ```
 
@@ -67,13 +67,15 @@ Match existing code style in surrounding modules.
 
 ## Step 4 — Verify
 
-Run:
+Run the verify skill(s) matching what the feature changed:
 
-```powershell
-.cursor/skills/verify-backend/scripts/verify-backend.ps1
-```
+- **Backend changes** → `verify-backend`
+  (`.cursor/skills/verify-backend/scripts/verify-backend.ps1`, or the `.sh` on macOS/Linux).
+- **Frontend changes** → `verify-frontend`
+  (`.cursor/skills/verify-frontend/scripts/verify-frontend.ps1`, or the `.sh` on macOS/Linux).
 
-Or ask the user to run `/verify-backend`.
+Run both for a dual-stack feature. Or ask the user to run `/verify-backend` and/or
+`/verify-frontend`.
 
 ## Step 5 — Close out
 

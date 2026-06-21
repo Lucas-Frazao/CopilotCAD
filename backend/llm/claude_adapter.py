@@ -14,6 +14,11 @@ DEFAULT_MODEL = "claude-sonnet-4-6"
 MODEL_ENV = "COPILOTCAD_CLAUDE_MODEL"
 API_KEY_ENV = "ANTHROPIC_API_KEY"
 
+# Upper bound on serialized project-context characters injected into the prompt.
+# Caps token cost and limits the blast radius of any untrusted workspace content
+# (prompt-injection) that rides along in the context payload.
+MAX_CONTEXT_CHARS = 8000
+
 
 class ClaudeAdapter(LLMAdapter):
     """Calls Anthropic Claude with a JSON-only Intent IR contract."""
@@ -39,9 +44,19 @@ class ClaudeAdapter(LLMAdapter):
     ) -> str:
         user_content = user_message
         if project_context:
+            # default=str keeps non-JSON-native values from raising; the cap and
+            # explicit delimiters bound cost and clearly separate untrusted context
+            # data from the user's instruction.
+            context_json = json.dumps(project_context, default=str)
+            if len(context_json) > MAX_CONTEXT_CHARS:
+                context_json = context_json[:MAX_CONTEXT_CHARS] + "…[truncated]"
             user_content = (
-                f"Project context (JSON):\n{json.dumps(project_context)}\n\n"
-                f"User message:\n{user_message}"
+                "<project_context>\n"
+                f"{context_json}\n"
+                "</project_context>\n\n"
+                "<user_message>\n"
+                f"{user_message}\n"
+                "</user_message>"
             )
 
         try:

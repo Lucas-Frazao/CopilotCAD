@@ -14,7 +14,42 @@ class IRParseError(Exception):
         self.snippet = snippet
 
 
-_FENCED_JSON = re.compile(r"```(?:json)?\s*([\{].*?[\}])\s*```", re.DOTALL | re.IGNORECASE)
+# Capture the inner body of the first fenced block; the object inside is then
+# located by a string-aware brace scan rather than a (greedy/non-greedy) regex,
+# which mis-handles nested objects and braces inside string literals.
+_FENCED_BLOCK = re.compile(r"```(?:json)?\s*(.*?)```", re.DOTALL | re.IGNORECASE)
+
+
+def _first_json_object(text: str) -> str | None:
+    """Return the first balanced ``{...}`` object, respecting string literals."""
+    start = text.find("{")
+    if start == -1:
+        return None
+
+    depth = 0
+    in_string = False
+    escaped = False
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : index + 1]
+
+    return None
 
 
 def _extract_json_text(text: str) -> str:
@@ -22,19 +57,17 @@ def _extract_json_text(text: str) -> str:
     if not stripped:
         raise IRParseError("empty LLM output", snippet=stripped)
 
-    fence_match = _FENCED_JSON.search(stripped)
+    # Prefer the first fenced block (the model's intended answer), then fall back
+    # to scanning the whole message for the first balanced object.
+    fence_match = _FENCED_BLOCK.search(stripped)
     if fence_match:
-        return fence_match.group(1).strip()
+        fenced = _first_json_object(fence_match.group(1))
+        if fenced is not None:
+            return fenced
 
-    if stripped.startswith("```"):
-        lines = stripped.splitlines()
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        inner = "\n".join(lines).strip()
-        if inner:
-            return inner
+    obj = _first_json_object(stripped)
+    if obj is not None:
+        return obj
 
     return stripped
 

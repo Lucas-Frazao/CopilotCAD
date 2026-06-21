@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sys
 from pathlib import Path
 from typing import Any
@@ -91,13 +92,34 @@ def read_workspace_file(workspace_path: str, relative_path: str) -> Success | Er
     return Success({"contents": contents})
 
 
+def _error_response(message: str) -> str:
+    """Build a JSON-RPC error envelope for failures outside method dispatch."""
+    return json.dumps(
+        {
+            "jsonrpc": "2.0",
+            "id": None,
+            "error": {"code": -32603, "message": message},
+        }
+    )
+
+
+def process_request(line: str) -> str | None:
+    """Dispatch one JSON-RPC line, converting any unexpected failure into an
+    error response so a single bad request can never tear down the server loop."""
+    try:
+        return dispatch(line)
+    except Exception as exc:  # noqa: BLE001 — keep the stdio loop alive at all costs
+        return _error_response(f"Internal server error: {exc}")
+
+
 def main() -> None:
+    """Serve JSON-RPC requests line-by-line over stdio until stdin closes."""
     for line in sys.stdin:
         line = line.strip()
         if not line:
             continue
 
-        response = dispatch(line)
+        response = process_request(line)
         if response:
             sys.stdout.write(response + "\n")
             sys.stdout.flush()

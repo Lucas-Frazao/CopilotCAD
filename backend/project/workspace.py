@@ -5,7 +5,7 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from schemas.workspace_manifest import Capabilities, WorkspaceManifest, default_capabilities
+from schemas.workspace_manifest import WorkspaceManifest, default_capabilities
 
 MANIFEST_FILENAME = "copilotcad.json"
 WORKSPACE_DIRS = ("docs", "parts", "assemblies", "exports")

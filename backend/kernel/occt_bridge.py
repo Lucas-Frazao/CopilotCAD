@@ -22,7 +22,7 @@ from OCC.Core.BRepBuilderAPI import (
 from OCC.Core.BRep import BRep_Tool
 from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
-from OCC.Core.GeomLProp import GeomLProp_SLProps
+from OCC.Core.GeomAbs import GeomAbs_Plane
 from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec
 from OCC.Core.IFSelect import IFSelect_RetDone
 from OCC.Core.IGESControl import IGESControl_Writer
@@ -278,14 +278,11 @@ def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, 
                 normal.Transform(transform)
                 normals.extend([normal.X(), normal.Y(), normal.Z()])
         else:
-            # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use face normal.
+            # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use a stable fallback.
             face_normal = gp_Dir(0.0, 0.0, 1.0)
             adaptor = BRepAdaptor_Surface(face)
-            u_mid = 0.5 * (adaptor.FirstUParameter() + adaptor.LastUParameter())
-            v_mid = 0.5 * (adaptor.FirstVParameter() + adaptor.LastVParameter())
-            props = GeomLProp_SLProps(adaptor, u_mid, v_mid, 1, 1e-6)
-            if props.IsNormalDefined():
-                face_normal = props.Normal()
+            if adaptor.GetType() == 0:  # GeomAbs_Plane
+                face_normal = adaptor.Plane().Axis().Direction()
             for _ in range(node_count):
                 normals.extend([face_normal.X(), face_normal.Y(), face_normal.Z()])
 

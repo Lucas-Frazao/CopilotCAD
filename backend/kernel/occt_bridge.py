@@ -11,20 +11,24 @@ from pathlib import Path
 from typing import Union
 
 from OCC.Core.Bnd import Bnd_Box
-from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut
+from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
 from OCC.Core.BRepBndLib import brepbndlib
 from OCC.Core.BRepBuilderAPI import (
     BRepBuilderAPI_MakeEdge,
     BRepBuilderAPI_MakeFace,
     BRepBuilderAPI_MakeWire,
 )
-from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
+from OCC.Core.BRep import BRep_Tool
+from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
+from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
 from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec
 from OCC.Core.IFSelect import IFSelect_RetDone
+from OCC.Core.IGESControl import IGESControl_Writer
 from OCC.Core.STEPControl import STEPControl_AsIs, STEPControl_Reader, STEPControl_Writer
-from OCC.Core.TopoDS import TopoDS_Shape, TopoDS_Face, topods
-from OCC.Core.TopExp import TopExp_Explorer
 from OCC.Core.TopAbs import TopAbs_FACE
+from OCC.Core.TopExp import TopExp_Explorer
+from OCC.Core.TopLoc import TopLoc_Location
+from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Shape, topods
 
 PathLike = Union[str, Path]
 
@@ -209,6 +213,108 @@ def build_mounting_plate_golden() -> TopoDS_Shape:
     profile = sketch_rectangle(100.0, 50.0, "XY", "center")
     solid = extrude(profile, 6.0, "+Z", "add")
     return hole_pattern_corners(solid, 6.0, 8.0)
+
+
+def fuse_shapes(shape_a: TopoDS_Shape, shape_b: TopoDS_Shape) -> TopoDS_Shape:
+    """Fuse two solids into one combined shape."""
+    _require_shape("shape_a", shape_a)
+    _require_shape("shape_b", shape_b)
+    fuse = BRepAlgoAPI_Fuse(shape_a, shape_b)
+    fuse.Build()
+    if not fuse.IsDone():
+        raise GeometryError("boolean fuse failed")
+    return fuse.Shape()
+
+
+def make_box(length: float, width: float, height: float) -> TopoDS_Shape:
+    """Build a simple box solid centered on XY at z=0."""
+    _require_positive("length", length)
+    _require_positive("width", width)
+    _require_positive("height", height)
+    box = BRepPrimAPI_MakeBox(length, width, height)
+    if not box.IsDone():
+        raise GeometryError("failed to build box solid")
+    return box.Shape()
+
+
+def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, list]:
+    """Triangulate a shape for viewport rendering."""
+    _require_shape("shape", shape)
+
+    mesh = BRepMesh_IncrementalMesh(shape, deflection)
+    mesh.Perform()
+    if not mesh.IsDone():
+        raise GeometryError("mesh tessellation failed")
+
+    vertices: list[float] = []
+    normals: list[float] = []
+    indices: list[int] = []
+    face_ids: list[int] = []
+
+    vertex_offset = 0
+    face_index = 0
+    explorer = TopExp_Explorer(shape, TopAbs_FACE)
+    while explorer.More():
+        face = topods.Face(explorer.Current())
+        location = TopLoc_Location()
+        triangulation = BRep_Tool.Triangulation(face, location)
+        if triangulation is None:
+            explorer.Next()
+            continue
+
+        transform = location.Transformation()
+        node_count = triangulation.NbNodes()
+        for node_index in range(1, node_count + 1):
+            point = triangulation.Node(node_index)
+            point.Transform(transform)
+            vertices.extend([point.X(), point.Y(), point.Z()])
+
+        has_normals = triangulation.HasNormals()
+        for node_index in range(1, node_count + 1):
+            if has_normals:
+                normal = triangulation.Normal(node_index)
+            else:
+                normal = triangulation.ComputeNormal(node_index)
+            normal.Transform(transform)
+            normals.extend([normal.X(), normal.Y(), normal.Z()])
+
+        triangle_count = triangulation.NbTriangles()
+        for triangle_index in range(1, triangle_count + 1):
+            triangle = triangulation.Triangle(triangle_index)
+            n1, n2, n3 = triangle.Get()
+            indices.extend(
+                [
+                    vertex_offset + n1 - 1,
+                    vertex_offset + n2 - 1,
+                    vertex_offset + n3 - 1,
+                ]
+            )
+            face_ids.append(face_index)
+
+        vertex_offset += node_count
+        face_index += 1
+        explorer.Next()
+
+    return {
+        "vertices": vertices,
+        "normals": normals,
+        "indices": indices,
+        "face_ids": face_ids,
+    }
+
+
+def export_iges(shape: TopoDS_Shape, path: PathLike) -> None:
+    """Write a TopoDS shape to an IGES file."""
+    _require_shape("shape", shape)
+
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    writer = IGESControl_Writer()
+    writer.AddShape(shape)
+    status = writer.Write(str(output_path))
+    if status != IFSelect_RetDone:
+        raise GeometryError(f"IGES write failed with status {status}")
 
 
 def _as_face(profile: TopoDS_Shape) -> TopoDS_Face:

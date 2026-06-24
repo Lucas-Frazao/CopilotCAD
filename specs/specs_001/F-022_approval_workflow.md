@@ -4,7 +4,7 @@
 
 Before CopilotCAD runs **dangerous or irreversible actions** (delete a part, release to production, mass file changes), show an **approval prompt in chat** with summary and diff preview — user must approve or reject before execution continues.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

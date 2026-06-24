@@ -4,7 +4,7 @@
 
 Add a **Problems panel** that lists everything CopilotCAD thinks is wrong, risky, or incomplete after you use chat — missing answers, unconfirmed assumptions, geometry failures, traceability gaps, and more — in one place instead of only inline in chat.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

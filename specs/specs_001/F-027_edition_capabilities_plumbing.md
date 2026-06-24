@@ -4,7 +4,7 @@
 
 Add **edition and capabilities** to the workspace manifest so CopilotCAD knows whether this project is **Community** or a future paid tier — and the UI can **warn** when limits are approached (without hard-blocking MVP).
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

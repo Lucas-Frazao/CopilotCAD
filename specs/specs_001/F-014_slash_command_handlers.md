@@ -4,7 +4,7 @@
 
 Make the **12 MVP slash commands** actually work: typing `/vision`, `/part`, `/export`, etc. in chat creates or updates the correct project documents and artifacts through the backend — not just the picker UI from F-008.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

@@ -4,7 +4,7 @@
 
 Let users **create assemblies via chat** — combinations of multiple parts in one mechanical design — with assembly files on disk and visibility in the explorer.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

@@ -5,9 +5,11 @@ import DiffSummary from "./DiffSummary";
 
 interface ChatMessageProps {
   message: ChatMessageData;
-  questionStates: Record<string, QuestionLocalState>;
-  onQuestionAnswerChange: (questionId: string, answer: string) => void;
-  onQuestionAccept: (questionId: string) => void;
+  questionStates?: Record<string, QuestionLocalState>;
+  onQuestionAnswerChange?: (questionId: string, answer: string) => void;
+  onQuestionAccept?: (questionId: string) => void;
+  onApprove?: (pendingId: string) => void;
+  onReject?: (pendingId: string) => void;
 }
 
 function BlockingQuestionRow({
@@ -50,13 +52,42 @@ function BlockingQuestionRow({
 
 export default function ChatMessage({
   message,
-  questionStates,
+  questionStates = {},
   onQuestionAnswerChange,
   onQuestionAccept,
+  onApprove,
+  onReject,
 }: ChatMessageProps) {
   const label = message.role === "user" ? "You" : "CopilotCAD";
   const blockingQuestions =
     message.intent?.questions?.filter((q) => q.blocking && q.status === "open") ?? [];
+
+  if (message.kind === "approval_required") {
+    return (
+      <div className={`chat-message chat-message-${message.role} chat-message-approval`}>
+        <div className="chat-message-label">{label}</div>
+        <div className="chat-message-body">
+          <div className="approval-message-text">{message.text}</div>
+          <div className="approval-actions">
+            <button
+              type="button"
+              className="approval-approve"
+              onClick={() => message.pendingId && onApprove?.(message.pendingId)}
+            >
+              Approve
+            </button>
+            <button
+              type="button"
+              className="approval-reject"
+              onClick={() => message.pendingId && onReject?.(message.pendingId)}
+            >
+              Reject
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`chat-message chat-message-${message.role}`}>
@@ -92,8 +123,8 @@ export default function ChatMessage({
                 key={question.id}
                 question={question}
                 state={state}
-                onAnswerChange={(answer) => onQuestionAnswerChange(question.id, answer)}
-                onAccept={() => onQuestionAccept(question.id)}
+                onAnswerChange={(answer) => onQuestionAnswerChange?.(question.id, answer)}
+                onAccept={() => onQuestionAccept?.(question.id)}
               />
             );
           })}

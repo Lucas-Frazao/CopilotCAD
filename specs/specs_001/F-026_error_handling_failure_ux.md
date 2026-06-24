@@ -4,7 +4,7 @@
 
 Ensure **every failure** in CopilotCAD produces a **clear, actionable message** in chat (what failed, why, what to try next) — while **preserving partial work** on disk when execution stops halfway.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

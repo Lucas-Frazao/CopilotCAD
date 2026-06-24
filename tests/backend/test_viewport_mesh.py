@@ -82,6 +82,7 @@ def test_mesh_payload_includes_face_id_map_for_picking():
 
 def test_tessellation_lives_in_occt_bridge_or_mesh_module():
     """Tessellation must not import OCC outside occt_bridge."""
+    pytest.importorskip("OCC.Core.TopoDS")
     bridge = importlib.import_module("kernel.occt_bridge")
     mesh_mod = _require_mesh_module()
     tessellate = getattr(bridge, "tessellate_shape", None) or getattr(

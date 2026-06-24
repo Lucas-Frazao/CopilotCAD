@@ -4,7 +4,7 @@
 
 When a user creates a **new CopilotCAD project**, open a blank workspace and show the **guided chat opener** — no wizard, no forms — everything starts in conversation.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

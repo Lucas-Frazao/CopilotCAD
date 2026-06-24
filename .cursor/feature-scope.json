@@ -1,6 +1,11 @@
 {
-  "feature": null,
-  "allowed_prefixes": [],
+  "feature": "F-010-F-027",
+  "allowed_prefixes": [
+    "backend/",
+    "frontend/",
+    "tests/backend/",
+    "specs/specs_001/"
+  ],
   "blocked_prefixes": ["docs/Docs_001/feature_roadmap_001.md", "docs/Docs_001/architecture_001.md"],
-  "notes": ""
+  "notes": "Batch implementation F-010 through F-027 per spec compliance tests."
 }

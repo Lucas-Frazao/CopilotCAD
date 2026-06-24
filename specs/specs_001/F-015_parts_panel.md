@@ -4,7 +4,7 @@
 
 Add a **Parts panel** listing every part in the project with name, maturity status, and open problem count — click a part to focus it in the explorer and viewport.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

@@ -102,3 +102,23 @@ export async function readWorkspaceFile(
 ): Promise<WorkspaceFileContents> {
   return unwrap(await getApi().readWorkspaceFile(workspacePath, relativePath));
 }
+
+export async function updateAssumption(
+  partId: string,
+  assumptionId: string,
+  status: "proposed" | "confirmed" | "rejected",
+  text?: string,
+): Promise<unknown> {
+  const api = getApi() as CopilotCADApi & {
+    updateAssumption?: (
+      partId: string,
+      assumptionId: string,
+      status: string,
+      text?: string,
+    ) => Promise<RpcEnvelope<unknown>>;
+  };
+  if (!api.updateAssumption) {
+    throw new Error("updateAssumption is not available in this environment");
+  }
+  return unwrap(await api.updateAssumption(partId, assumptionId, status, text));
+}

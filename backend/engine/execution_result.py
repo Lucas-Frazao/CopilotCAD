@@ -12,6 +12,12 @@ class ExecutionResult:
     error: str | None = None
     shapes_by_step_id: dict[str, Any] = field(default_factory=dict)
 
+    @property
+    def final_shape(self) -> Any:
+        if self.final_step_id is None:
+            return None
+        return self.shapes_by_step_id.get(self.final_step_id)
+
     def to_dict(self) -> dict[str, Any]:
         return {
             "success": self.success,

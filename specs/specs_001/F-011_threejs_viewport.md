@@ -4,7 +4,7 @@
 
 Add a **3D viewport** in the center of the app where users can **see** the parts CopilotCAD generates, rotate/zoom the model, and **click faces** to send selection context back to chat.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

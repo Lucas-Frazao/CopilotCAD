@@ -85,6 +85,13 @@ class IRAssumption(BaseModel):
     status: AssumptionStatus = "proposed"
 
 
+class IRAssemblyInstance(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    instance_id: str
+    part_id: str
+
+
 class IRConstraints(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
@@ -93,6 +100,7 @@ class IRConstraints(BaseModel):
     process: str | None = None
     tolerance: dict[str, Any] = Field(default_factory=dict)
     interfaces: list[str] = Field(default_factory=list)
+    instances: list[IRAssemblyInstance] = Field(default_factory=list)
 
 
 class IRStep(BaseModel):
@@ -110,6 +118,7 @@ class IRLinks(BaseModel):
     spec_refs: list[str] = Field(default_factory=list)
     requirement_refs: list[str] = Field(default_factory=list)
     architecture_refs: list[str] = Field(default_factory=list)
+    interface_refs: list[str] = Field(default_factory=list)
 
 
 class IntentIR(BaseModel):

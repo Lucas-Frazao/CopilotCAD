@@ -4,7 +4,7 @@
 
 Add an **Interfaces panel** listing every **interface** defined across the project — connection points between parts (mounting faces, bolt patterns, electrical ports) — with status: open, linked, or verified.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

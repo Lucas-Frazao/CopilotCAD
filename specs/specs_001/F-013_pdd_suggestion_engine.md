@@ -4,7 +4,7 @@
 
 When a user’s chat request is **complex** (multi-part, vague, or assembly-scale), CopilotCAD should **suggest Part-Driven Design (PDD)** in chat — with quick-reply buttons — instead of blindly generating a weak single-part plan.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

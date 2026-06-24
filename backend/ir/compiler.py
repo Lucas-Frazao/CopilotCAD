@@ -17,14 +17,20 @@ class CompileError(Exception):
 
     def __init__(
         self,
-        error_type: CompileErrorType,
         message: str,
+        *,
+        error_type: CompileErrorType = "validation",
         details: dict[str, Any] | None = None,
+        field_errors: list[dict[str, Any]] | None = None,
     ) -> None:
+        resolved_details = dict(details or {})
+        if field_errors is not None:
+            resolved_details["field_errors"] = field_errors
+
         super().__init__(message)
         self.error_type = error_type
         self.message = message
-        self.details = details or {}
+        self.details = resolved_details
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -43,24 +49,24 @@ def compile_intent(
     try:
         raw_text = adapter.generate_structured_json(user_message, project_context)
     except LLMConfigurationError as exc:
-        raise CompileError("configuration", str(exc)) from exc
+        raise CompileError(str(exc), error_type="configuration") from exc
     except LLMError as exc:
-        raise CompileError("llm", str(exc)) from exc
+        raise CompileError(str(exc), error_type="llm") from exc
 
     try:
         data = parse_llm_json(raw_text)
     except IRParseError as exc:
         raise CompileError(
-            "parse",
             exc.message,
-            {"snippet": exc.snippet},
+            error_type="parse",
+            details={"snippet": exc.snippet},
         ) from exc
 
     try:
         return validate_intent_ir(sanitize_intent_ir_data(data))
     except IntentIRValidationError as exc:
         raise CompileError(
-            "validation",
             exc.message,
-            exc.to_dict(),
+            error_type="validation",
+            details=exc.to_dict(),
         ) from exc

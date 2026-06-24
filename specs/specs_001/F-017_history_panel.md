@@ -4,7 +4,7 @@
 
 Add a **History panel** showing what happened to the active part: chat actions, geometry changes, and assumption updates — with timestamps, summaries, and diffs.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

@@ -3,7 +3,9 @@
 from typing import Any
 
 _VALID_ASSUMPTION_STATUS = frozenset({"proposed", "confirmed", "rejected"})
-_CONSTRAINT_KEYS = frozenset({"dimensions", "material", "process", "tolerance", "interfaces"})
+_CONSTRAINT_KEYS = frozenset(
+    {"dimensions", "material", "process", "tolerance", "interfaces", "instances"}
+)
 
 
 def _first_float(source: dict[str, Any], *keys: str) -> float | None:

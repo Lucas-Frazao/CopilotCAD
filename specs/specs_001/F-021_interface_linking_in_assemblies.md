@@ -4,7 +4,7 @@
 
 When parts are **mated in an assembly**, automatically **link interface definitions** across part specs — updating `connects_to` fields — and run **interface conflict** detection across the project.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

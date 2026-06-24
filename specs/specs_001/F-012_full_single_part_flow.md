@@ -4,7 +4,7 @@
 
 Prove the **end-to-end MVP path** for one part: user describes a mounting plate in chat → system creates files, shows 3D geometry, lists problems, and can export STEP — with **all panels staying in sync**.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

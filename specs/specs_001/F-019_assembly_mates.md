@@ -4,7 +4,7 @@
 
 Implement **mates** — rules that define how two parts in an assembly fit together (coincident faces, concentric holes, fixed offsets) — in the geometry kernel and execution engine.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

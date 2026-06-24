@@ -4,7 +4,7 @@
 
 Extend the 3D viewport to **show entire assemblies** — multiple parts in correct relative positions — with an assembly tree and per-instance selection for chat context.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

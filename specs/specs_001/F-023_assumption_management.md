@@ -4,7 +4,7 @@
 
 Let users **confirm, reject, or edit AI assumptions** from chat (inline tags) and persist changes to `assumptions.yaml` — so the Problems engine stops nagging about resolved items.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

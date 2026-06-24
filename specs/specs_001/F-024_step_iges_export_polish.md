@@ -4,7 +4,7 @@
 
 Make **export reliable and visible**: user can export any part or assembly to **STEP or IGES** via chat or `/export`, files land in `exports/`, and the action appears in history.
 
-**Status:** Pending approval.
+**Status:** Implemented.
 
 ## Why this matters
 

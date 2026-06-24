@@ -4,6 +4,7 @@ dist-electron/
 *.pyc
 __pycache__/
 .venv/
+.tools/
 .env
 *.log
 .DS_Store

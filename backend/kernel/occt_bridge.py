@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Union
 
 from OCC.Core.Bnd import Bnd_Box
+from OCC.Core.BRepAdaptor import BRepAdaptor_Surface
 from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
 from OCC.Core.BRepBndLib import brepbndlib
 from OCC.Core.BRepBuilderAPI import (
@@ -21,6 +22,7 @@ from OCC.Core.BRepBuilderAPI import (
 from OCC.Core.BRep import BRep_Tool
 from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
+from OCC.Core.GeomLProp import GeomLProp_SLProps
 from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec
 from OCC.Core.IFSelect import IFSelect_RetDone
 from OCC.Core.IGESControl import IGESControl_Writer
@@ -163,10 +165,10 @@ def hole_pattern_corners(
     for x, y in centers:
         axis = gp_Ax2(gp_Pnt(x, y, cylinder_base_z), gp_Dir(0.0, 0.0, 1.0))
         cylinder = BRepPrimAPI_MakeCylinder(axis, radius, cut_height)
-        if not cylinder.IsDone():
-            raise GeometryError("failed to build hole cylinder")
+        cylinder_shape = cylinder.Shape()
+        _require_shape("hole cylinder", cylinder_shape)
 
-        cut = BRepAlgoAPI_Cut(result, cylinder.Shape())
+        cut = BRepAlgoAPI_Cut(result, cylinder_shape)
         cut.Build()
         if not cut.IsDone():
             raise GeometryError("hole boolean cut failed")
@@ -232,9 +234,9 @@ def make_box(length: float, width: float, height: float) -> TopoDS_Shape:
     _require_positive("width", width)
     _require_positive("height", height)
     box = BRepPrimAPI_MakeBox(length, width, height)
-    if not box.IsDone():
-        raise GeometryError("failed to build box solid")
-    return box.Shape()
+    shape = box.Shape()
+    _require_shape("box solid", shape)
+    return shape
 
 
 def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, list]:
@@ -270,13 +272,22 @@ def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, 
             vertices.extend([point.X(), point.Y(), point.Z()])
 
         has_normals = triangulation.HasNormals()
-        for node_index in range(1, node_count + 1):
-            if has_normals:
+        if has_normals:
+            for node_index in range(1, node_count + 1):
                 normal = triangulation.Normal(node_index)
-            else:
-                normal = triangulation.ComputeNormal(node_index)
-            normal.Transform(transform)
-            normals.extend([normal.X(), normal.Y(), normal.Z()])
+                normal.Transform(transform)
+                normals.extend([normal.X(), normal.Y(), normal.Z()])
+        else:
+            # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use face normal.
+            face_normal = gp_Dir(0.0, 0.0, 1.0)
+            adaptor = BRepAdaptor_Surface(face)
+            u_mid = 0.5 * (adaptor.FirstUParameter() + adaptor.LastUParameter())
+            v_mid = 0.5 * (adaptor.FirstVParameter() + adaptor.LastVParameter())
+            props = GeomLProp_SLProps(adaptor, u_mid, v_mid, 1, 1e-6)
+            if props.IsNormalDefined():
+                face_normal = props.Normal()
+            for _ in range(node_count):
+                normals.extend([face_normal.X(), face_normal.Y(), face_normal.Z()])
 
         triangle_count = triangulation.NbTriangles()
         for triangle_index in range(1, triangle_count + 1):

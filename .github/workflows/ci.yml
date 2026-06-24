@@ -31,12 +31,12 @@ jobs:
           cache-environment-key: backend-${{ hashFiles('backend/pyproject.toml') }}
 
       - name: Verify OCCT import
-        run: python -c "from OCC.Core.TopoDS import TopoDS_Shape; print('OCCT OK')"
+        run: micromamba run -n copilotcad-ci python -c "from OCC.Core.TopoDS import TopoDS_Shape; print('OCCT OK')"
 
       - name: Run backend tests
         env:
           PYTHONPATH: ${{ github.workspace }}/backend
-        run: python -m pytest tests/backend -v --tb=short
+        run: micromamba run -n copilotcad-ci python -m pytest tests/backend -v --tb=short
 
   frontend:
     name: Frontend

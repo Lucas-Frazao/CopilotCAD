@@ -1,0 +1,1370 @@
+
+> copilotcad-frontend@0.1.0 test
+> vitest run
+
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v1.6.1 C:/Projects/CopilotCAD/frontend
+
+ ✓ renderer/ipc/bridge.test.ts  (4 tests) 3ms
+ ✓ renderer/chat/chat-utils.test.ts  (6 tests) 3ms
+ ✓ electron/jsonrpc.test.ts  (7 tests) 6ms
+ ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx  (4 tests | 4 failed) 26ms
+   ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > renders multiple instance meshes in one scene
+     → Unable to find an element by: [data-testid="assembly-viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > shows assembly tree listing instances
+     → Unable to find an element with the text: /mounting_plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > passes instance_id to selection handler on instance click
+     → Unable to find an element by: [data-testid="instance-inst_bracket"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > single-part mode still works when no assembly active
+     → Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ renderer/panels/ViewportPanel.test.tsx  (5 tests | 5 failed) 32ms
+   ❯ renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > renders mounting plate mesh as a visible canvas
+     → Unable to find an element by: [data-testid="viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > shows placeholder when no geometry exists
+     → Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > exposes orbit controls without crashing
+     → Unable to find an element by: [data-testid="viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > records face selection for chat context
+     → Unable to find an element by: [data-testid="viewport-pick-surface"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > clears selection when mesh is removed
+     → Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ renderer/panels/HistoryPanel.test.tsx  (5 tests | 5 failed) 65ms
+   ❯ renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > shows Actions and Features sub-tabs
+     → Unable to find an accessible element with the role "tab" and name `/actions/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > lists action entries with timestamp and summary
+     → Unable to find an element with the text: /Added corner holes/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > links action entry to chat message when message_id stored
+     → Unable to find an accessible element with the role "button" and name `/open in chat/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > Feature tab lists modeling steps in order
+     → Unable to find an accessible element with the role "listitem"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > filters history by active part only
+     → Unable to find an element with the text: /Added corner holes/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ✓ renderer/components/FileTree.test.tsx  (4 tests) 91ms
+ ❯ renderer/components/AssumptionTag.test.tsx  (4 tests | 4 failed) 96ms
+   ❯ renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > renders Confirm, Reject, and Edit actions for proposed assumptions
+     → Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+   ❯ renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > calls updateAssumption on confirm
+     → Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+   ❯ renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > updates displayed status after confirm
+     → Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+   ❯ renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > allows editing assumption text
+     → Unable to find an accessible element with the role "button" and name `/edit/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+ ❯ renderer/panels/approval-workflow-f022.test.tsx  (3 tests | 3 failed) 75ms
+   ❯ renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > renders approval_required message with Approve and Reject buttons
+     → Unable to find an accessible element with the role "button" and name `/approve/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > calls onApprove with pending id when approved
+     → Unable to find an accessible element with the role "button" and name `/approve/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+   ❯ renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > calls onReject without executing when rejected
+     → Unable to find an accessible element with the role "button" and name `/reject/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+ ✓ renderer/panels/ProblemsPanel.test.tsx  (5 tests) 107ms
+ ✓ renderer/panels/ExplorerPanel.test.tsx  (3 tests) 163ms
+ ✓ renderer/errors/formatUserError.test.ts  (6 tests) 3ms
+ ❯ renderer/panels/InterfacesPanel.test.tsx  (4 tests | 4 failed) 23ms
+   ❯ renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > lists interfaces with part id, name, type, and status
+     → Unable to find an element with the text: /mount_a/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > clicking a row selects the part in explorer context
+     → Unable to find an element with the text: /mount_a/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > highlights row when interface_conflict problem references interface
+     → Unable to find an element by: [data-testid="interface-row-mount_a"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > shows empty state when no interfaces defined
+     → Unable to find an element with the text: /no interfaces/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ✓ renderer/ipc/types.test.ts  (4 tests) 2ms
+ ✓ renderer/chat/slash-commands-f014.test.ts  (2 tests) 3ms
+ ✓ renderer/capabilities/workspaceCapabilities.test.ts  (4 tests) 1ms
+⎯⎯⎯⎯⎯⎯ Failed Tests 29 ⎯⎯⎯⎯⎯⎯⎯
+ ❯ renderer/panels/PartsPanel.test.tsx  (4 tests | 4 failed) 46ms
+   ❯ renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > lists all parts with maturity badge and problem count
+     → Unable to find an element with the text: /mounting_plate|Mounting Plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > selecting a part calls onSelectPart
+     → Unable to find an element with the text: /Mounting Plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > highlights active part
+     → Unable to find an accessible element with the role "button" and name `/Mounting Plate/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+   ❯ renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > shows empty state when no parts exist
+     → Unable to find an element with the text: /no parts yet/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ✓ renderer/integration/golden-path-f012.test.ts  (2 tests) 2ms
+ ✓ renderer/pdd/classifier.test.ts  (3 tests) 2ms
+
+ Test Files  7 failed | 12 passed (19)
+      Tests  29 failed | 50 passed (79)
+   Start at  16:17:33
+   Duration  2.02s (transform 442ms, setup 2.79s, collect 1.35s, tests 749ms, environment 10.22s, prepare 1.83s)
+
+
+ FAIL  renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > renders Confirm, Reject, and Edit actions for proposed assumptions
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/components/AssumptionTag.test.tsx:33:19
+     31|     );
+     32| 
+     33|     expect(screen.getByRole("button", { name: /confirm/i })).toBeInThe…
+       |                   ^
+     34|     expect(screen.getByRole("button", { name: /reject/i })).toBeInTheD…
+     35|     expect(screen.getByRole("button", { name: /edit/i })).toBeInTheDoc…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/29]⎯
+
+ FAIL  renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > calls updateAssumption on confirm
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/components/AssumptionTag.test.tsx:50:28
+     48|     );
+     49| 
+     50|     fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+       |                            ^
+     51| 
+     52|     expect(bridge.updateAssumption).toHaveBeenCalledWith(
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/29]⎯
+
+ FAIL  renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > updates displayed status after confirm
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/confirm/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/components/AssumptionTag.test.tsx:72:28
+     70|     );
+     71| 
+     72|     fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
+       |                            ^
+     73|     expect(onUpdated).toHaveBeenCalled();
+     74|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/29]⎯
+
+ FAIL  renderer/components/AssumptionTag.test.tsx > AssumptionTag (F-023) > allows editing assumption text
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/edit/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <span
+      class="assumption-tag assumption-tag-high assumption-status-proposed"
+    >
+      <span
+        class="assumption-tag-text"
+      >
+        Plate thickness is 6 mm.
+      </span>
+      <span
+        class="assumption-tag-badge"
+      >
+        proposed
+      </span>
+    </span>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/components/AssumptionTag.test.tsx:85:28
+     83|     );
+     84| 
+     85|     fireEvent.click(screen.getByRole("button", { name: /edit/i }));
+       |                            ^
+     86|     const input = screen.getByRole("textbox");
+     87|     fireEvent.change(input, { target: { value: "8 mm thickness." } });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/29]⎯
+
+ FAIL  renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > renders approval_required message with Approve and Reject buttons
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/approve/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/approval-workflow-f022.test.tsx:35:19
+     33| 
+     34|     expect(screen.getByText(/remove parts\/mounting_plate/i)).toBeInTh…
+     35|     expect(screen.getByRole("button", { name: /approve/i })).toBeInThe…
+       |                   ^
+     36|     expect(screen.getByRole("button", { name: /reject/i })).toBeInTheD…
+     37|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[5/29]⎯
+
+ FAIL  renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > calls onApprove with pending id when approved
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/approve/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/approval-workflow-f022.test.tsx:49:28
+     47|     );
+     48| 
+     49|     fireEvent.click(screen.getByRole("button", { name: /approve/i }));
+       |                            ^
+     50|     expect(onApprove).toHaveBeenCalledWith("pending-42");
+     51|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[6/29]⎯
+
+ FAIL  renderer/panels/approval-workflow-f022.test.tsx > Approval workflow chat UI (F-022) > calls onReject without executing when rejected
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/reject/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="chat-message chat-message-assistant"
+    >
+      <div
+        class="chat-message-label"
+      >
+        CopilotCAD
+      </div>
+      <div
+        class="chat-message-body"
+      >
+        This will remove parts/mounting_plate and related files.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/approval-workflow-f022.test.tsx:63:28
+     61|     );
+     62| 
+     63|     fireEvent.click(screen.getByRole("button", { name: /reject/i }));
+       |                            ^
+     64|     expect(onReject).toHaveBeenCalledWith("pending-42");
+     65|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[7/29]⎯
+
+ FAIL  renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > shows Actions and Features sub-tabs
+TestingLibraryElementError: Unable to find an accessible element with the role "tab" and name `/actions/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/HistoryPanel.test.tsx:36:19
+     34|     );
+     35| 
+     36|     expect(screen.getByRole("tab", { name: /actions/i })).toBeInTheDoc…
+       |                   ^
+     37|     expect(screen.getByRole("tab", { name: /features/i })).toBeInTheDo…
+     38|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[8/29]⎯
+
+ FAIL  renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > lists action entries with timestamp and summary
+TestingLibraryElementError: Unable to find an element with the text: /Added corner holes/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/HistoryPanel.test.tsx:49:19
+     47|     );
+     48| 
+     49|     expect(screen.getByText(/Added corner holes/i)).toBeInTheDocument(…
+       |                   ^
+     50|     expect(screen.getByText(/2026/)).toBeInTheDocument();
+     51|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[9/29]⎯
+
+ FAIL  renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > links action entry to chat message when message_id stored
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/open in chat/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/HistoryPanel.test.tsx:64:12
+     62|     );
+     63| 
+     64|     screen.getByRole("button", { name: /open in chat/i }).click();
+       |            ^
+     65|     expect(onOpenChat).toHaveBeenCalledWith("msg-42");
+     66|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[10/29]⎯
+
+ FAIL  renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > Feature tab lists modeling steps in order
+TestingLibraryElementError: Unable to find an accessible element with the role "listitem"
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:109:15
+ ❯ renderer/panels/HistoryPanel.test.tsx:78:26
+     76|     );
+     77| 
+     78|     const items = screen.getAllByRole("listitem");
+       |                          ^
+     79|     expect(items[0]).toHaveTextContent(/sketch/i);
+     80|     expect(items[1]).toHaveTextContent(/extrude/i);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[11/29]⎯
+
+ FAIL  renderer/panels/HistoryPanel.test.tsx > HistoryPanel (F-017) > filters history by active part only
+TestingLibraryElementError: Unable to find an element with the text: /Added corner holes/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/HistoryPanel.test.tsx:87:19
+     85|       <HistoryPanel partId="mounting_plate" actions={ACTION_ENTRIES} f…
+     86|     );
+     87|     expect(screen.getByText(/Added corner holes/i)).toBeInTheDocument(…
+       |                   ^
+     88| 
+     89|     rerender(<HistoryPanel partId="bracket" actions={[]} features={[]}…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[12/29]⎯
+
+ FAIL  renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > lists interfaces with part id, name, type, and status
+TestingLibraryElementError: Unable to find an element with the text: /mount_a/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/InterfacesPanel.test.tsx:33:19
+     31|     render(<InterfacesPanel interfaces={SAMPLE_INTERFACES} />);
+     32| 
+     33|     expect(screen.getByText(/mount_a/i)).toBeInTheDocument();
+       |                   ^
+     34|     expect(screen.getByText(/mechanical/i)).toBeInTheDocument();
+     35|     expect(screen.getByText(/open/i)).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[13/29]⎯
+
+ FAIL  renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > clicking a row selects the part in explorer context
+TestingLibraryElementError: Unable to find an element with the text: /mount_a/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/InterfacesPanel.test.tsx:45:28
+     43|     );
+     44| 
+     45|     fireEvent.click(screen.getByText(/mount_a/i));
+       |                            ^
+     46|     expect(onSelect).toHaveBeenCalledWith("mounting_plate");
+     47|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[14/29]⎯
+
+ FAIL  renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > highlights row when interface_conflict problem references interface
+TestingLibraryElementError: Unable to find an element by: [data-testid="interface-row-mount_a"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/InterfacesPanel.test.tsx:56:24
+     54|       />,
+     55|     );
+     56|     const row = screen.getByTestId("interface-row-mount_a");
+       |                        ^
+     57|     expect(row).toHaveClass("highlighted");
+     58|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[15/29]⎯
+
+ FAIL  renderer/panels/InterfacesPanel.test.tsx > InterfacesPanel (F-016) > shows empty state when no interfaces defined
+TestingLibraryElementError: Unable to find an element with the text: /no interfaces/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/InterfacesPanel.test.tsx:62:19
+     60|   it("shows empty state when no interfaces defined", () => {
+     61|     render(<InterfacesPanel interfaces={[]} />);
+     62|     expect(screen.getByText(/no interfaces/i)).toBeInTheDocument();
+       |                   ^
+     63|   });
+     64| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[16/29]⎯
+
+ FAIL  renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > lists all parts with maturity badge and problem count
+TestingLibraryElementError: Unable to find an element with the text: /mounting_plate|Mounting Plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/PartsPanel.test.tsx:29:19
+     27|     render(<PartsPanel parts={SAMPLE_PARTS} activePartId={null} />);
+     28| 
+     29|     expect(screen.getByText(/mounting_plate|Mounting Plate/i)).toBeInT…
+       |                   ^
+     30|     expect(screen.getByText(/draft/i)).toBeInTheDocument();
+     31|     expect(screen.getByText(/2/)).toBeInTheDocument();
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[17/29]⎯
+
+ FAIL  renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > selecting a part calls onSelectPart
+TestingLibraryElementError: Unable to find an element with the text: /Mounting Plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/PartsPanel.test.tsx:45:28
+     43|     );
+     44| 
+     45|     fireEvent.click(screen.getByText(/Mounting Plate/i));
+       |                            ^
+     46|     expect(onSelect).toHaveBeenCalledWith("mounting_plate");
+     47|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[18/29]⎯
+
+ FAIL  renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > highlights active part
+TestingLibraryElementError: Unable to find an accessible element with the role "button" and name `/Mounting Plate/i`
+
+There are no accessible roles. But there might be some inaccessible roles. If you wish to access them, then set the `hidden` option to `true`. Learn more about this here: https://testing-library.com/docs/dom-testing-library/api-queries#byrole
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/PartsPanel.test.tsx:51:24
+     49|   it("highlights active part", () => {
+     50|     render(<PartsPanel parts={SAMPLE_PARTS} activePartId="mounting_pla…
+     51|     const row = screen.getByRole("button", { name: /Mounting Plate/i }…
+       |                        ^
+     52|     expect(row).toHaveAttribute("aria-selected", "true");
+     53|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[19/29]⎯
+
+ FAIL  renderer/panels/PartsPanel.test.tsx > PartsPanel (F-015) > shows empty state when no parts exist
+TestingLibraryElementError: Unable to find an element with the text: /no parts yet/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div />
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/PartsPanel.test.tsx:57:19
+     55|   it("shows empty state when no parts exist", () => {
+     56|     render(<PartsPanel parts={[]} activePartId={null} />);
+     57|     expect(screen.getByText(/no parts yet/i)).toBeInTheDocument();
+       |                   ^
+     58|     expect(screen.getByText(/\/part|chat/i)).toBeInTheDocument();
+     59|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[20/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > renders multiple instance meshes in one scene
+TestingLibraryElementError: Unable to find an element by: [data-testid="assembly-viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx:41:19
+     39|   it("renders multiple instance meshes in one scene", () => {
+     40|     render(<ViewportPanel assemblyMesh={ASSEMBLY_MESH} mode="assembly"…
+     41|     expect(screen.getByTestId("assembly-viewport-canvas")).toBeInTheDo…
+       |                   ^
+     42|     expect(screen.getByTestId("mesh-inst_plate")).toBeInTheDocument();
+     43|     expect(screen.getByTestId("mesh-inst_bracket")).toBeInTheDocument(…
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[21/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > shows assembly tree listing instances
+TestingLibraryElementError: Unable to find an element with the text: /mounting_plate/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx:48:19
+     46|   it("shows assembly tree listing instances", () => {
+     47|     render(<ViewportPanel assemblyMesh={ASSEMBLY_MESH} mode="assembly"…
+     48|     expect(screen.getByText(/mounting_plate/i)).toBeInTheDocument();
+       |                   ^
+     49|     expect(screen.getByText(/bracket/i)).toBeInTheDocument();
+     50|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[22/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > passes instance_id to selection handler on instance click
+TestingLibraryElementError: Unable to find an element by: [data-testid="instance-inst_bracket"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx:62:12
+     60|     );
+     61| 
+     62|     screen.getByTestId("instance-inst_bracket").click();
+       |            ^
+     63|     expect(onSelectInstance).toHaveBeenCalledWith(
+     64|       expect.objectContaining({ instance_id: "inst_bracket", part_id: …
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[23/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel-assembly-f020.test.tsx > Assembly viewport (F-020) > single-part mode still works when no assembly active
+TestingLibraryElementError: Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel-assembly-f020.test.tsx:70:19
+     68|   it("single-part mode still works when no assembly active", () => {
+     69|     render(<ViewportPanel mode="part" mesh={null} />);
+     70|     expect(screen.getByText(/no geometry|placeholder/i)).toBeInTheDocu…
+       |                   ^
+     71|   });
+     72| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[24/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > renders mounting plate mesh as a visible canvas
+TestingLibraryElementError: Unable to find an element by: [data-testid="viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel.test.tsx:27:19
+     25|   it("renders mounting plate mesh as a visible canvas", () => {
+     26|     render(<ViewportPanel mesh={MOUNTING_PLATE_MESH} />);
+     27|     expect(screen.getByTestId("viewport-canvas")).toBeInTheDocument();
+       |                   ^
+     28|   });
+     29| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[25/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > shows placeholder when no geometry exists
+TestingLibraryElementError: Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel.test.tsx:32:19
+     30|   it("shows placeholder when no geometry exists", () => {
+     31|     render(<ViewportPanel mesh={null} />);
+     32|     expect(screen.getByText(/no geometry|placeholder/i)).toBeInTheDocu…
+       |                   ^
+     33|   });
+     34| 
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[26/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > exposes orbit controls without crashing
+TestingLibraryElementError: Unable to find an element by: [data-testid="viewport-canvas"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel.test.tsx:37:19
+     35|   it("exposes orbit controls without crashing", () => {
+     36|     render(<ViewportPanel mesh={MOUNTING_PLATE_MESH} />);
+     37|     expect(screen.getByTestId("viewport-canvas")).toBeInTheDocument();
+       |                   ^
+     38|     // Controls are internal to Three.js — panel must mount without er…
+     39|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[27/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > records face selection for chat context
+TestingLibraryElementError: Unable to find an element by: [data-testid="viewport-pick-surface"]
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel.test.tsx:50:31
+     48|       />,
+     49|     );
+     50|     const pickTarget = screen.getByTestId("viewport-pick-surface");
+       |                               ^
+     51|     pickTarget.click();
+     52|     expect(onSelect).toHaveBeenCalledWith(expect.any(Number));
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[28/29]⎯
+
+ FAIL  renderer/panels/ViewportPanel.test.tsx > ViewportPanel (F-011) > clears selection when mesh is removed
+TestingLibraryElementError: Unable to find an element with the text: /no geometry|placeholder/i. This could be because the text is broken up by multiple elements. In this case, you can provide a function for your text matcher to make your matcher more flexible.
+
+Ignored nodes: comments, script, style
+<body>
+  <div>
+    <div
+      class="viewport-panel"
+    >
+      <div
+        class="panel-placeholder"
+      >
+        Viewport
+      </div>
+      <div
+        class="panel-body"
+      >
+        3D geometry will appear here.
+      </div>
+    </div>
+  </div>
+</body>
+ ❯ Object.getElementError node_modules/@testing-library/dom/dist/config.js:37:19
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:76:38
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:52:17
+ ❯ node_modules/@testing-library/dom/dist/query-helpers.js:95:19
+ ❯ renderer/panels/ViewportPanel.test.tsx:60:19
+     58|     );
+     59|     rerender(<ViewportPanel mesh={null} selectedFaceId={null} />);
+     60|     expect(screen.getByText(/no geometry|placeholder/i)).toBeInTheDocu…
+       |                   ^
+     61|   });
+     62| });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[29/29]⎯
+

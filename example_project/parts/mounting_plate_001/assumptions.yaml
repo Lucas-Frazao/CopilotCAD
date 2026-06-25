@@ -1,0 +1,31 @@
+assumptions:
+- id: a1
+  text: Plate lies flat on the XY plane, extruded in the +Z direction.
+  scope: part
+  source: ai
+  importance: medium
+  status: proposed
+- id: a2
+  text: Corner holes are simple cylindrical through-holes (no countersink or counterbore).
+  scope: part
+  source: ai
+  importance: medium
+  status: proposed
+- id: a3
+  text: Material is assumed to be aluminum 6061-T6 unless otherwise specified.
+  scope: part
+  source: ai
+  importance: medium
+  status: proposed
+- id: a4
+  text: Hole offset of 8 mm is measured from each edge to the hole center.
+  scope: part
+  source: ai
+  importance: high
+  status: proposed
+- id: a5
+  text: All edges remain sharp (no fillets or chamfers) unless requested.
+  scope: part
+  source: ai
+  importance: low
+  status: proposed

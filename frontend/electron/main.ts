@@ -36,6 +36,11 @@ function getWorkspacePath(): string {
 }
 
 function getPythonExecutable(backendDir: string): string {
+  const fromEnv = process.env.COPILOTCAD_PYTHON;
+  if (fromEnv && fs.existsSync(fromEnv)) {
+    return path.resolve(fromEnv);
+  }
+
   const venvPython =
     process.platform === "win32"
       ? path.join(backendDir, ".venv", "Scripts", "python.exe")

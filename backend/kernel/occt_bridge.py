@@ -281,7 +281,7 @@ def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, 
             # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use a stable fallback.
             face_normal = gp_Dir(0.0, 0.0, 1.0)
             adaptor = BRepAdaptor_Surface(face)
-            if adaptor.GetType() == 0:  # GeomAbs_Plane
+            if adaptor.GetType() == GeomAbs_Plane:
                 face_normal = adaptor.Plane().Axis().Direction()
             for _ in range(node_count):
                 normals.extend([face_normal.X(), face_normal.Y(), face_normal.Z()])

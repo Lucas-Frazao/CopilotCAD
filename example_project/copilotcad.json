@@ -1,5 +1,11 @@
 {
-  "format": "copilotcad",
+  "project_name": "mounting_plate_example",
   "version": "0.1",
-  "name": "mounting_plate_example"
+  "edition": "community",
+  "capabilities": {
+    "max_assembly_parts": 5,
+    "advanced_pdd": false,
+    "scripting": false,
+    "plugin_marketplace": false
+  }
 }

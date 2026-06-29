@@ -11,6 +11,12 @@
         "command": "python .cursor/hooks/spec_scope_guard.py",
         "matcher": "Write|StrReplace|ApplyPatch|EditNotebook"
       }
+    ],
+    "stop": [
+      {
+        "command": "python .cursor/hooks/learning_edition_continue.py",
+        "loop_limit": 500
+      }
     ]
   }
 }

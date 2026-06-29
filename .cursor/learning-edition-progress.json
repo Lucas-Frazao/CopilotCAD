@@ -11,15 +11,17 @@
     "backend/llm/errors.py",
     "frontend/renderer/chat/chat-types.ts",
     "frontend/renderer/ipc/mesh-types.ts",
-    "frontend/renderer/errors/formatUserError.ts"
-  ],
-  "pending": [
+    "frontend/renderer/errors/formatUserError.ts",
     "frontend/renderer/capabilities/workspaceCapabilities.ts",
     "frontend/renderer/pdd/classifier.ts",
     "frontend/renderer/chat/chat-utils.ts",
     "frontend/renderer/project/syncAfterExecute.ts",
     "frontend/renderer/project/syncAfterExecute.test.ts",
-    "frontend/renderer/ipc/types.ts",
+    "backend/schemas/assumptions.py",
+    "backend/schemas/history.py",
+    "frontend/renderer/ipc/types.ts"
+  ],
+  "pending": [
     "frontend/renderer/ipc/bridge.ts",
     "frontend/renderer/ipc/bridge.test.ts",
     "frontend/renderer/ipc/types.test.ts",

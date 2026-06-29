@@ -1,6 +1,20 @@
+/**
+ * ============================================================================
+ * FILE: chat-utils.ts — Chat helpers: diffs, slash commands, compile errors
+ * ============================================================================
+ *
+ * Shared pure functions used by ChatPanel and tests. No React here — just
+ * string formatting and message classification so logic is easy to unit test.
+ * ============================================================================
+ */
+
+// ExecuteIntentResult describes backend step run outcome (success, step ids, error).
 import type { ExecuteIntentResult } from "../ipc/types";
 
-/** One-line execution summary for diff display and tests. */
+/**
+ * buildDiffSummaryText — one-line summary after executing a modeling plan.
+ * Shown in diff UI and asserted in golden-path tests.
+ */
 export function buildDiffSummaryText(execution: ExecuteIntentResult): string {
   if (execution.success) {
     const steps =
@@ -15,6 +29,10 @@ export function buildDiffSummaryText(execution: ExecuteIntentResult): string {
   return `Execution failed: ${detail}. Steps attempted: ${steps}.`;
 }
 
+/**
+ * SLASH_COMMANDS — canonical list of /commands the product supports.
+ * `as const` makes TypeScript treat these as literal strings, not generic string[].
+ */
 export const SLASH_COMMANDS = [
   "/vision",
   "/constitution",
@@ -30,6 +48,9 @@ export const SLASH_COMMANDS = [
   "/history",
 ] as const;
 
+/**
+ * filterSlashCommands — autocomplete candidates when user types "/" in chat.
+ */
 export function filterSlashCommands(input: string): string[] {
   const trimmed = input.trim();
   if (!trimmed.startsWith("/")) {
@@ -39,6 +60,9 @@ export function filterSlashCommands(input: string): string[] {
   return SLASH_COMMANDS.filter((cmd) => cmd.startsWith(lower));
 }
 
+/**
+ * isSlashOnlyMessage — true if the entire message is exactly one slash command.
+ */
 export function isSlashOnlyMessage(text: string): boolean {
   const trimmed = text.trim().toLowerCase();
   if (!trimmed.startsWith("/")) {
@@ -47,15 +71,19 @@ export function isSlashOnlyMessage(text: string): boolean {
   return SLASH_COMMANDS.some((cmd) => trimmed === cmd);
 }
 
-/** Greetings and small talk — skip compile_intent and reply locally. */
+/**
+ * isConversationalMessage — greetings that should not trigger compile_intent RPC.
+ */
 export function isConversationalMessage(text: string): boolean {
   const normalized = text.trim().toLowerCase().replace(/[!?.]+$/, "");
   return /^(hi|hello|hey|thanks|thank you|yo|good morning|good afternoon)$/.test(normalized);
 }
 
+/** Fixed assistant reply for conversational messages. */
 export const CONVERSATIONAL_REPLY =
   "Hi! Describe a part you'd like to create — for example, a 100×50 mm mounting plate with 6 mm corner holes — or ask about your project.";
 
+/** Shape of structured data on compile_intent JSON-RPC errors. */
 interface CompileErrorData {
   error_type?: string;
   message?: string;
@@ -66,7 +94,9 @@ interface CompileErrorData {
   };
 }
 
-/** User-facing compile error text from JSON-RPC error payloads. */
+/**
+ * formatCompileError — map compile_intent failures to chat-friendly strings.
+ */
 export function formatCompileError(err: unknown): string {
   if (!(err instanceof Error)) {
     return String(err);
@@ -78,7 +108,7 @@ export function formatCompileError(err: unknown): string {
   if (data?.error_type === "validation") {
     return (
       "I couldn't turn that into a modeling plan. Try describing a part with dimensions — " +
-      "for example: \"Create a 100×50×6 mm plate with 6 mm corner holes.\""
+      'for example: "Create a 100×50×6 mm plate with 6 mm corner holes."'
     );
   }
   if (data?.error_type === "configuration") {

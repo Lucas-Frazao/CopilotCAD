@@ -1,3 +1,15 @@
+/**
+ * ============================================================================
+ * FILE: bridge.ts — Renderer-side IPC facade to the Electron main process
+ * ============================================================================
+ *
+ * React components must not call window.copilotcad directly everywhere — this
+ * module centralizes access, unwraps RpcEnvelope results, and normalizes edge
+ * cases (e.g. execute_intent returning failure data inside JSON-RPC errors).
+ * ============================================================================
+ */
+
+// Type-only imports from our IPC contract definitions.
 import type {
   BackendStatus,
   CopilotCADApi,
@@ -8,8 +20,13 @@ import type {
   WorkspaceFileContents,
   WorkspaceTreeNode,
 } from "./types";
+import type { PartMeshPayload } from "./mesh-types";
 
+/**
+ * getApi — return the preload-exposed API or throw if not in Electron renderer.
+ */
 function getApi(): CopilotCADApi {
+  // SSR/tests may have no window; desktop preload must attach window.copilotcad.
   if (typeof window === "undefined" || !window.copilotcad) {
     throw new Error("CopilotCAD IPC is only available in the Electron renderer");
   }
@@ -17,9 +34,9 @@ function getApi(): CopilotCADApi {
 }
 
 /**
- * Unwrap a backend RPC envelope: return the value on success, or throw an Error
- * carrying the original JSON-RPC `code`/`data` on failure. Replaces the previous
- * brittle approach of stuffing JSON into an Error message behind a magic prefix.
+ * unwrap — convert RpcEnvelope to value or throw Error with code/data attached.
+ *
+ * Replaces an older hack that JSON-stringified errors into Error.message.
  */
 function unwrap<T>(envelope: RpcEnvelope<T>): T {
   if (envelope.ok) {
@@ -31,10 +48,12 @@ function unwrap<T>(envelope: RpcEnvelope<T>): T {
   throw error;
 }
 
+/** Health check RPC — verifies main ↔ backend path works. */
 export async function ping(): Promise<string> {
   return unwrap(await getApi().ping());
 }
 
+/** Send user message to backend LLM compile_intent. */
 export async function compileIntent(
   message: string,
   context?: Record<string, unknown>,
@@ -42,6 +61,7 @@ export async function compileIntent(
   return unwrap(await getApi().compileIntent(message, context));
 }
 
+/** Type guard: does unknown value look like ExecuteIntentResult? */
 function isExecuteIntentPayload(data: unknown): data is ExecuteIntentResult {
   if (!data || typeof data !== "object") {
     return false;
@@ -51,13 +71,17 @@ function isExecuteIntentPayload(data: unknown): data is ExecuteIntentResult {
 }
 
 /**
- * Execute a compiled IR. On an execution failure the backend returns the full
- * execution payload (steps + problems) as the JSON-RPC error `data`; we surface
- * that as a normal result so the chat panel can render the diff + problems.
+ * executeIntent — run compiled IR on the backend for the current workspace.
+ *
+ * On execution failure the backend may put the full result in error.data; we
+ * return that as a normal ExecuteIntentResult so chat can show problems/diff.
  */
 export async function executeIntent(ir: IntentIRPayload): Promise<ExecuteIntentResult> {
+  const workspacePath = await getWorkspacePath();
   try {
-    const value = unwrap(await getApi().executeIntent(ir as unknown as Record<string, unknown>));
+    const value = unwrap(
+      await getApi().executeIntent(ir as unknown as Record<string, unknown>, workspacePath),
+    );
     return normalizeExecuteResult(value);
   } catch (err) {
     const withData = err as Error & { data?: unknown };
@@ -68,6 +92,7 @@ export async function executeIntent(ir: IntentIRPayload): Promise<ExecuteIntentR
   }
 }
 
+/** Coerce partial/unknown RPC payloads into a strict ExecuteIntentResult. */
 function normalizeExecuteResult(raw: unknown): ExecuteIntentResult {
   const record = (raw ?? {}) as Record<string, unknown>;
   const problems = Array.isArray(record.problems) ? (record.problems as ExecuteIntentResult["problems"]) : [];
@@ -80,22 +105,35 @@ function normalizeExecuteResult(raw: unknown): ExecuteIntentResult {
   };
 }
 
+/** Fetch tessellated mesh for viewport rendering. */
+export async function getPartMesh(
+  workspacePath: string,
+  partId: string,
+): Promise<PartMeshPayload> {
+  return unwrap(await getApi().getPartMesh(workspacePath, partId));
+}
+
+/** Absolute path to the open .copilotcad workspace on disk. */
 export async function getWorkspacePath(): Promise<string> {
   return getApi().getWorkspacePath();
 }
 
+/** Current Python backend process status. */
 export async function getBackendStatus(): Promise<BackendStatus> {
   return getApi().getBackendStatus();
 }
 
+/** Subscribe to backend status push events from main process. */
 export function onBackendStatus(callback: (status: BackendStatus) => void): () => void {
   return getApi().onBackendStatus(callback);
 }
 
+/** Explorer panel: list files/folders under workspace root. */
 export async function listWorkspaceTree(workspacePath: string): Promise<WorkspaceTreeNode[]> {
   return unwrap(await getApi().listWorkspaceTree(workspacePath));
 }
 
+/** Read a text file from the workspace (relative path). */
 export async function readWorkspaceFile(
   workspacePath: string,
   relativePath: string,
@@ -103,6 +141,7 @@ export async function readWorkspaceFile(
   return unwrap(await getApi().readWorkspaceFile(workspacePath, relativePath));
 }
 
+/** Update assumption status on a part (optional API on newer preloads). */
 export async function updateAssumption(
   partId: string,
   assumptionId: string,

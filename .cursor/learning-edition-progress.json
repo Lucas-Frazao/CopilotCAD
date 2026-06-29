@@ -7,13 +7,13 @@
     "tests/frontend/placeholder.test.ts",
     "frontend/vitest.setup.ts",
     "backend/engine/execution_result.py",
-    "backend/engine/errors.py"
-  ],
-  "pending": [
+    "backend/engine/errors.py",
     "backend/llm/errors.py",
     "frontend/renderer/chat/chat-types.ts",
     "frontend/renderer/ipc/mesh-types.ts",
-    "frontend/renderer/errors/formatUserError.ts",
+    "frontend/renderer/errors/formatUserError.ts"
+  ],
+  "pending": [
     "frontend/renderer/capabilities/workspaceCapabilities.ts",
     "frontend/renderer/pdd/classifier.ts",
     "frontend/renderer/chat/chat-utils.ts",

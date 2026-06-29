@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * FILE: workspaceCapabilities.test.ts — Tests for edition limits (F-027)
+ * ============================================================================
+ *
+ * Verifies default community caps and checkSoftLimit warning messages without
+ * loading a real workspace or backend manifest.
+ * ============================================================================
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { checkSoftLimit, defaultCapabilities } from "../../renderer/capabilities/workspaceCapabilities";

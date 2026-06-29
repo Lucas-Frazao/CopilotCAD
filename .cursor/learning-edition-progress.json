@@ -21,10 +21,13 @@
     "backend/schemas/history.py",
     "frontend/renderer/ipc/types.ts",
     "frontend/renderer/ipc/bridge.ts",
-    "frontend/renderer/store/appStore.ts"
+    "frontend/renderer/store/appStore.ts",
+    "frontend/renderer/ipc/bridge.test.ts",
+    "frontend/renderer/ipc/types.test.ts",
+    "frontend/renderer/capabilities/workspaceCapabilities.test.ts",
+    "frontend/renderer/errors/formatUserError.test.ts"
   ],
   "pending": [
-    "frontend/renderer/ipc/bridge.test.ts",
     "frontend/electron/preload.ts",
     "frontend/electron/jsonrpc.ts",
     "frontend/electron/jsonrpc.test.ts",

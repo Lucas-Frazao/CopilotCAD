@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * FILE: types.test.ts — Compile-time / shape tests for IPC TypeScript types
+ * ============================================================================
+ *
+ * These tests do not call the backend. They construct example objects that must
+ * satisfy our interfaces (IntentIRPayload, etc.) so TypeScript and Vitest catch
+ * accidental field renames or missing properties.
+ * ============================================================================
+ */
+
 import { describe, expect, it } from "vitest";
 
 import type {

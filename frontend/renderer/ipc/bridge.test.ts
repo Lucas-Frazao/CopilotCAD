@@ -1,8 +1,20 @@
+/**
+ * ============================================================================
+ * FILE: bridge.test.ts — Tests for IPC bridge envelope unwrapping
+ * ============================================================================
+ *
+ * These tests run in Vitest with a fake window.copilotcad object. They verify
+ * that bridge.ts correctly turns RpcEnvelope successes into values and failures
+ * into Errors — and that executeIntent special-cases execution payloads in errors.
+ * ============================================================================
+ */
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
-import { compileIntent, executeIntent, listWorkspaceTree } from "./bridge";
+import { compileIntent, executeIntent, getPartMesh, listWorkspaceTree } from "./bridge";
 import type { CopilotCADApi } from "./types";
 
+/** Helper: attach a partial mock API to global window for one test file. */
 function installApi(overrides: Partial<CopilotCADApi>): void {
   (window as unknown as { copilotcad: Partial<CopilotCADApi> }).copilotcad = overrides;
 }
@@ -42,6 +54,7 @@ describe("ipc bridge envelope handling", () => {
 
   it("recovers the execution payload when execute fails with payload in error data", async () => {
     installApi({
+      getWorkspacePath: vi.fn().mockResolvedValue("/ws"),
       executeIntent: vi.fn().mockResolvedValue({
         ok: false,
         error: {
@@ -59,6 +72,41 @@ describe("ipc bridge envelope handling", () => {
     });
     expect(result.success).toBe(false);
     expect(result.step_ids).toEqual(["s1"]);
+  });
+
+  it("passes workspace_path when executing intent", async () => {
+    const executeIntentMock = vi.fn().mockResolvedValue({
+      ok: true,
+      value: { success: true, step_ids: ["s1"], final_step_id: "s1", problems: [] },
+    });
+    installApi({
+      getWorkspacePath: vi.fn().mockResolvedValue("/ws"),
+      executeIntent: executeIntentMock,
+    });
+
+    await executeIntent({
+      type: "part_create",
+      prompt: "p",
+      summary: "s",
+      target: { part_id: "mounting_plate" },
+    });
+
+    expect(executeIntentMock).toHaveBeenCalledWith(
+      expect.objectContaining({ target: { part_id: "mounting_plate" } }),
+      "/ws",
+    );
+  });
+
+  it("unwraps a part mesh envelope", async () => {
+    installApi({
+      getPartMesh: vi.fn().mockResolvedValue({
+        ok: true,
+        value: { vertices: [0], normals: [0], indices: [0] },
+      }),
+    });
+
+    const mesh = await getPartMesh("/ws", "mounting_plate");
+    expect(mesh.vertices).toEqual([0]);
   });
 
   it("unwraps a workspace tree envelope", async () => {

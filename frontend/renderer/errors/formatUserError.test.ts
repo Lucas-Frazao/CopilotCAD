@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * FILE: formatUserError.test.ts — Tests for user-facing error strings (F-026)
+ * ============================================================================
+ *
+ * Ensures technical RPC/IPC errors become short, helpful chat messages and
+ * never leak raw "Error invoking remote method" blobs to the user.
+ * ============================================================================
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { formatUserError } from "../../renderer/errors/formatUserError";

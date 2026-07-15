@@ -1,4 +1,21 @@
-"""hole_pattern_corners step handler (F-004)."""
+"""
+Hole Pattern Corners Handler — Four Corner Holes (F-004)
+========================================================
+
+WHAT THIS FILE DOES
+-------------------
+Runs the ``hole_pattern_corners`` IR step: cuts four cylindrical holes near the
+corners of a rectangular plate solid.
+
+PARAMS
+------
+- diameter — hole diameter in mm
+- offset — inset from each corner edge in mm
+
+DEPENDENCIES
+------------
+Requires ``step.from_step`` pointing at an extruded solid (typically a plate).
+"""
 
 from typing import Any
 
@@ -24,6 +41,7 @@ def _require_input_shape(step: IRStep, shapes: dict[str, Any]) -> Any:
 
 
 def handle_hole_pattern_corners(step: IRStep, shapes: dict[str, Any]) -> Any:
+    """Execute hole_pattern_corners on the input solid."""
     solid = _require_input_shape(step, shapes)
     params = step.params
     return kernel_adapter.hole_pattern_corners(

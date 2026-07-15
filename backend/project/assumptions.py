@@ -1,4 +1,20 @@
-"""Assumption management for parts (F-023)."""
+"""
+Assumption Management — assumptions.yaml Updates (F-023)
+========================================================
+
+WHAT THIS FILE DOES
+-------------------
+Updates individual assumption records (status and optional text) inside
+parts/<part_id>/assumptions.yaml.
+
+VALID STATUSES
+--------------
+proposed → confirmed or rejected (see VALID_STATUSES)
+
+ERRORS
+------
+AssumptionError for unknown ids or invalid status strings.
+"""
 
 from __future__ import annotations
 
@@ -39,6 +55,7 @@ def update_assumption(
     status: str,
     text: str | None = None,
 ) -> dict[str, Any]:
+    """Find assumption by id, update status/text, write YAML, return updated dict."""
     if status not in VALID_STATUSES:
         raise AssumptionError(f"invalid assumption status: {status!r}")
 

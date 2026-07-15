@@ -1,4 +1,19 @@
-"""Persist part geometry as STEP under parts/<id>/geometry.step (F-012)."""
+"""
+Geometry Cache — STEP Persist + Session Memory (F-012)
+========================================================
+
+WHAT THIS FILE DOES
+-------------------
+Saves and loads OCCT shapes for each part:
+
+  Disk:   parts/<part_id>/geometry.step
+  Memory: _SESSION_SHAPES dict (for tests / RPC without workspace path)
+
+WHY TWO LAYERS?
+---------------
+Executor may run geometry in memory first; session cache lets mesh/export work
+before the user picks a workspace folder.
+"""
 
 from __future__ import annotations
 
@@ -27,7 +42,7 @@ def save_part_geometry(workspace: Path, part_id: str, shape: Any) -> Path:
 
 
 def load_part_geometry(workspace: Path, part_id: str) -> Any | None:
-    """Load shape from disk or session cache."""
+    """Load shape from disk if present, else from session cache."""
     path = geometry_path(workspace, part_id)
     if path.is_file():
         from kernel.occt_bridge import read_step
@@ -44,4 +59,5 @@ def cache_session_shape(part_id: str, shape: Any) -> None:
 
 
 def clear_session_shapes() -> None:
+    """Reset session cache — used between tests."""
     _SESSION_SHAPES.clear()

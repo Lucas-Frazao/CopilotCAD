@@ -1,4 +1,20 @@
-"""Read/write part folder artifacts."""
+"""
+Part Folder Scaffolding — parts/<id>/ Layout
+=============================================
+
+WHAT THIS FILE DOES
+-------------------
+Creates the on-disk folder for one mechanical part with starter files:
+
+  parts/<part_id>/
+    spec.yaml         — part metadata and interfaces
+    assumptions.yaml  — AI/user assumptions
+    history.json      — audit events
+
+CONSTANTS
+---------
+Exported filenames and PARTS_DIR are shared across project/, executor, and UI.
+"""
 
 import json
 from pathlib import Path

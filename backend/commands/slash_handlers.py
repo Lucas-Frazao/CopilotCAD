@@ -1,11 +1,32 @@
-"""MVP slash command handlers (F-014)."""
+"""
+Slash Command Handlers — Quick Workspace Actions (F-014)
+========================================================
+
+WHAT THIS FILE DOES
+-------------------
+Parses chat lines starting with "/" (e.g. "/part bracket", "/export") and
+performs filesystem actions in the workspace — scaffold docs, parts, exports.
+
+MAIN ENTRY
+----------
+``handle_slash_command(command_line, context)`` → ``{success, summary, ...}``
+
+CONTEXT REQUIREMENTS
+--------------------
+context must include ``workspace_path``. Many commands also use ``active_part_id``.
+
+SUPPORTED COMMANDS (MVP)
+------------------------
+/vision, /constitution, /architecture, /manufacturing — doc templates
+/part, /interface, /plan, /review, /release, /export, /assumptions, /history
+"""
 
 from __future__ import annotations
 
 from pathlib import Path
 from typing import Any
 
-import yaml
+import yaml  # Read/write spec.yaml and assumptions.yaml
 
 from project.export_polish import ExportError, export_part_with_history
 from project.part_folder import (
@@ -15,6 +36,7 @@ from project.part_folder import (
     create_part_folder,
 )
 
+# command → (relative path under workspace, default file content)
 _DOC_TEMPLATES: dict[str, tuple[str, str]] = {
     "/vision": ("docs/product_vision.md", "# Product Vision\n\nDescribe the product goals and users.\n"),
     "/constitution": (
@@ -44,12 +66,14 @@ def _active_part_id(context: dict[str, Any]) -> str:
 
 
 def _write_text(path: Path, content: str) -> None:
+    """Create parent dirs and write file only if it does not exist yet."""
     path.parent.mkdir(parents=True, exist_ok=True)
     if not path.is_file():
         path.write_text(content, encoding="utf-8")
 
 
 def _parse_command(command_line: str) -> tuple[str, str]:
+    """Split '/part foo bar' → ('/part', 'foo bar')."""
     parts = command_line.strip().split(maxsplit=1)
     command = parts[0].lower()
     args = parts[1].strip() if len(parts) > 1 else ""
@@ -57,6 +81,7 @@ def _parse_command(command_line: str) -> tuple[str, str]:
 
 
 def handle_slash_command(command_line: str, context: dict[str, Any]) -> dict[str, Any]:
+    """Dispatch a slash command and return a JSON-serializable result dict."""
     command, args = _parse_command(command_line)
     workspace = _workspace_path(context)
 
@@ -146,6 +171,7 @@ def handle_slash_command(command_line: str, context: dict[str, Any]) -> dict[str
             try:
                 export_part_with_history(workspace, part_id, format="step")
             except ExportError:
+                # No geometry yet — write placeholder so the UI has a file to show
                 target = workspace / rel
                 target.parent.mkdir(parents=True, exist_ok=True)
                 target.write_text("# export placeholder — model part first\n", encoding="utf-8")

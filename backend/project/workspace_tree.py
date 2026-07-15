@@ -1,4 +1,21 @@
-"""Workspace file tree listing and safe read for explorer (F-009)."""
+"""
+Workspace File Tree — Explorer List + Safe Read (F-009)
+=======================================================
+
+WHAT THIS FILE DOES
+-------------------
+Powers the file explorer panel: nested tree of workspace folders and safe
+read-only preview of text files over the JSON-RPC stdio bridge.
+
+SECURITY
+--------
+``resolve_workspace_file`` blocks path traversal (..), absolute paths, and
+reads outside the four allowed top-level dirs (WORKSPACE_DIRS).
+
+SIZE LIMIT
+----------
+Preview reads cap at MAX_FILE_BYTES (1 MiB) to protect memory and IPC payload size.
+"""
 
 from __future__ import annotations
 
@@ -6,8 +23,6 @@ from pathlib import Path, PurePosixPath
 
 from project.workspace import WORKSPACE_DIRS, WorkspaceError, load_workspace
 
-# Preview reads are capped so a single large file (e.g. a multi-MB STEP export)
-# cannot be slurped fully into memory and pushed over the stdio bridge.
 MAX_FILE_BYTES = 1024 * 1024  # 1 MiB
 
 
@@ -16,22 +31,21 @@ class WorkspacePathError(WorkspaceError):
 
 
 def resolve_workspace_file(workspace: Path, relative_path: str) -> Path:
-    """Resolve a workspace-relative path and ensure it stays inside the workspace.
+    """
+    Resolve a workspace-relative path and ensure it stays inside the workspace.
 
-    Rejects absolute paths (POSIX root, UNC, and drive-letter), parent-directory
-    traversal, and any path whose first segment is not one of ``WORKSPACE_DIRS``.
-    The final ``relative_to`` check is defence-in-depth that also catches symlink
-    escapes (``.resolve()`` follows links). Returns the absolute target path.
+    Rejects absolute paths (POSIX root, UNC, drive-letter), parent-directory
+    traversal, and any path whose first segment is not one of WORKSPACE_DIRS.
+    The final relative_to check also catches symlink escapes via .resolve().
     """
     if not relative_path or not relative_path.strip():
         raise WorkspacePathError("Relative path is required")
 
-    # Inspect the raw form *before* stripping so absolute/UNC inputs are rejected
-    # rather than silently coerced into a workspace-relative path.
+    # Check raw string before normalizing — prevents "/etc/passwd" style tricks
     raw = relative_path.replace("\\", "/")
-    if raw.startswith("/"):  # POSIX root "/etc" or UNC "//server/share"
+    if raw.startswith("/"):
         raise WorkspacePathError("Absolute paths are not allowed")
-    if len(raw) >= 2 and raw[1] == ":":  # drive-letter "C:/..."
+    if len(raw) >= 2 and raw[1] == ":":
         raise WorkspacePathError("Absolute paths are not allowed")
 
     parts = PurePosixPath(raw.lstrip("/")).parts
@@ -55,6 +69,7 @@ def resolve_workspace_file(workspace: Path, relative_path: str) -> Path:
 
 
 def _build_node(path: Path, workspace: Path, relative_path: str) -> dict:
+    """Recursively build {name, path, type, children?} tree nodes."""
     if path.is_dir():
         children: list[dict] = []
         try:
@@ -97,12 +112,10 @@ def list_workspace_tree(workspace: Path) -> list[dict]:
 
 
 def read_workspace_file(workspace: Path, relative_path: str) -> str:
-    """Read UTF-8 text from a file inside the workspace for read-only preview.
+    """
+    Read UTF-8 text from a file inside the workspace for read-only preview.
 
-    Validates the path via :func:`resolve_workspace_file`, then rejects files that
-    exceed ``MAX_FILE_BYTES`` or are not valid UTF-8 text. Raises
-    :class:`WorkspacePathError` for a missing/oversized/binary file so callers can
-    surface a structured error instead of an unhandled ``UnicodeDecodeError``.
+    Raises WorkspacePathError for missing, oversized, or non-UTF-8 files.
     """
     load_workspace(workspace)
     target = resolve_workspace_file(workspace, relative_path)

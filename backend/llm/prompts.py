@@ -1,7 +1,24 @@
-"""System prompts for Intent IR generation (F-005)."""
+"""
+LLM System Prompts — Intent IR Compiler Instructions (F-005)
+=============================================================
 
-from schemas.intent_ir import MVP_STEP_OPS
+WHAT THIS FILE DOES
+-------------------
+Builds the system prompt sent to Claude (or any LLM adapter). The prompt teaches
+the model how to convert user CAD requests into valid Intent IR JSON.
 
+KEY RULES EMBEDDED IN THE PROMPT
+--------------------------------
+- Required top-level fields (type, prompt, summary, target, …)
+- Valid intent types and step ops (from schema constants)
+- Param naming conventions (length not length_mm)
+- Example mounting-plate step chain
+- Fallback for conversational non-CAD messages (doc_scaffold)
+"""
+
+from schemas.intent_ir import MVP_STEP_OPS  # Authoritative list of allowed step ops
+
+# Intent IR "type" field values the model may emit
 _INTENT_TYPES = (
     "part_create",
     "part_edit",
@@ -13,6 +30,7 @@ _INTENT_TYPES = (
 
 
 def build_system_prompt() -> str:
+    """Return the full system prompt string for Intent IR generation."""
     ops_sorted = ", ".join(sorted(MVP_STEP_OPS))
     types_sorted = ", ".join(_INTENT_TYPES)
 

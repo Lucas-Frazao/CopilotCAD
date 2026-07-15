@@ -1,10 +1,30 @@
-"""User-facing error catalog (F-026)."""
+# =============================================================================
+# User-Facing Error Catalog (Feature F-026)
+# =============================================================================
+#
+# WHAT THIS FILE DOES
+# -------------------
+# When something goes wrong (LLM parse failure, bad dimensions, export with
+# no geometry, etc.), the UI needs friendly messages — not raw Python tracebacks.
+#
+# ERROR_CATALOG maps internal "mode IDs" (like compile_parse) to:
+#   - error_type  — category for icons / filtering
+#   - message     — short explanation for the user
+#   - suggested_next_steps — actionable bullets in the Problems panel
+#
+# get_user_message() and format_error() turn exceptions into that shape.
+# =============================================================================
 
 from __future__ import annotations
 
 from typing import Any
 
+# CompileError carries parse/validation details from the IR compiler pipeline
 from ir.compiler import CompileError
+
+# -----------------------------------------------------------------------------
+# Master lookup table — add a new entry when you introduce a new failure mode
+# -----------------------------------------------------------------------------
 
 ERROR_CATALOG: dict[str, dict[str, Any]] = {
     "compile_parse": {
@@ -99,8 +119,15 @@ ERROR_CATALOG: dict[str, dict[str, Any]] = {
 
 
 def get_user_message(mode_id: str, *, error_type: str | None = None, details: Any = None) -> str:
+    """
+    Look up a catalog message by mode_id, with small special cases.
+
+    mode_id examples: "compile_parse", "execute_kernel", "workspace_invalid"
+    """
     entry = ERROR_CATALOG.get(mode_id, {})
     message = entry.get("message", f"An error occurred ({mode_id}).")
+
+    # Validation errors with field_errors get a slightly more specific hint
     if mode_id == "compile_validation":
         if isinstance(details, dict):
             field_errors = details.get("field_errors", [])
@@ -109,12 +136,19 @@ def get_user_message(mode_id: str, *, error_type: str | None = None, details: An
                     "The modeling plan failed validation — add missing fields and dimensions."
                 )
         return "The modeling plan failed validation — check dimensions and summary."
+
     if error_type and error_type in {entry.get("error_type"), mode_id}:
         return str(message)
     return str(message)
 
 
 def format_error(err: Any) -> dict[str, Any]:
+    """
+    Normalize any error object into the UI-friendly dict shape.
+
+    Handles CompileError, generic Exception, or a bare mode_id string.
+    """
+    # Structured compile failures from ir.compiler
     if isinstance(err, CompileError):
         mode_id = f"compile_{err.error_type}"
         entry = ERROR_CATALOG.get(mode_id, {})
@@ -125,6 +159,7 @@ def format_error(err: Any) -> dict[str, Any]:
             "suggested_next_steps": entry.get("suggested_next_steps", []),
         }
 
+    # Generic Python exceptions — guess category from message text
     if isinstance(err, Exception):
         message = str(err)
         mode_id = "execute_kernel"
@@ -138,6 +173,7 @@ def format_error(err: Any) -> dict[str, Any]:
             "suggested_next_steps": entry.get("suggested_next_steps", []),
         }
 
+    # Fallback: treat err as a catalog key string
     entry = ERROR_CATALOG.get(str(err), {})
     return {
         "error_type": entry.get("error_type", "unknown"),

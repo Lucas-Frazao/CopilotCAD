@@ -1,4 +1,12 @@
-"""STEP export via OCCT bridge (F-004)."""
+"""
+STEP Export — Thin OCCT Bridge Wrapper (F-004)
+=============================================
+
+WHAT THIS FILE DOES
+-------------------
+Single-function helper to write a TopoDS shape to a STEP file on disk.
+Delegates all OCCT work to kernel.occt_bridge.export_step.
+"""
 
 from pathlib import Path
 from typing import Any, Union

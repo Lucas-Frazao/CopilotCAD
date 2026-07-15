@@ -1,10 +1,28 @@
-"""Pydantic models for Intent IR (slim schema)."""
+# =============================================================================
+# Intent IR Schema — Pydantic Models (Slim MVP)
+# =============================================================================
+#
+# WHAT THIS FILE DEFINES
+# ----------------------
+# Intent IR is the contract between chat, the LLM, and the CAD executor.
+# A single IntentIR document describes *what* to do (part_create, export, …),
+# *where* (target part/assembly), *constraints* (dimensions, material), and
+# *how* (ordered list of modeling steps).
+#
+# Pydantic's ``extra="forbid"`` and ``strict=True`` reject unknown fields and
+# loose types — LLM output must match this shape exactly (after sanitization).
+# =============================================================================
 
 from typing import Any, Literal
 
+# BaseModel — data classes with validation
+# ConfigDict — forbid extra JSON keys, strict typing
+# Field — defaults and aliases (e.g. JSON key "from" → Python from_step)
 from pydantic import BaseModel, ConfigDict, Field
 
-# MVP step catalog — valid op types for IR steps.
+# -----------------------------------------------------------------------------
+# Allowed step operation names for the MVP CAD kernel
+# -----------------------------------------------------------------------------
 MVP_STEP_OPS: frozenset[str] = frozenset(
     {
         "sketch_rectangle",
@@ -31,6 +49,7 @@ MVP_STEP_OPS: frozenset[str] = frozenset(
     }
 )
 
+# High-level intent kinds the executor understands
 IntentType = Literal[
     "part_create",
     "part_edit",
@@ -40,6 +59,7 @@ IntentType = Literal[
     "release",
 ]
 
+# Literal unions for assumptions and questions — keep LLM output bounded
 AssumptionScope = Literal["part", "assembly", "project"]
 AssumptionSource = Literal["user", "ai", "spec"]
 AssumptionImportance = Literal["low", "medium", "high"]
@@ -49,6 +69,8 @@ QuestionStatus = Literal["open", "answered", "dismissed"]
 
 
 class IRTarget(BaseModel):
+    """What entity this intent acts on (part, assembly, or doc file)."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     part_id: str | None = None
@@ -57,6 +79,8 @@ class IRTarget(BaseModel):
 
 
 class IRContext(BaseModel):
+    """Editor context: active part, selection, workspace path."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     active_part_id: str | None = None
@@ -65,6 +89,8 @@ class IRContext(BaseModel):
 
 
 class IRQuestion(BaseModel):
+    """Blocking or non-blocking question the LLM needs answered."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     id: str
@@ -75,6 +101,8 @@ class IRQuestion(BaseModel):
 
 
 class IRAssumption(BaseModel):
+    """Design assumption (material guess, tolerance, etc.) with lifecycle status."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     id: str
@@ -86,6 +114,8 @@ class IRAssumption(BaseModel):
 
 
 class IRAssemblyInstance(BaseModel):
+    """One part placed in an assembly with a unique instance id."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     instance_id: str
@@ -93,6 +123,8 @@ class IRAssemblyInstance(BaseModel):
 
 
 class IRConstraints(BaseModel):
+    """Physical and assembly constraints attached to the intent."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     dimensions: dict[str, Any] = Field(default_factory=dict)
@@ -104,6 +136,13 @@ class IRConstraints(BaseModel):
 
 
 class IRStep(BaseModel):
+    """
+    One modeling operation in sequence.
+
+    JSON uses ``"from"`` for the dependency step id; Python names it from_step
+    because ``from`` is a reserved keyword.
+    """
+
     model_config = ConfigDict(extra="forbid", strict=True, populate_by_name=True)
 
     id: str
@@ -113,6 +152,8 @@ class IRStep(BaseModel):
 
 
 class IRLinks(BaseModel):
+    """Traceability links to specs, requirements, architecture docs."""
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     spec_refs: list[str] = Field(default_factory=list)
@@ -122,6 +163,13 @@ class IRLinks(BaseModel):
 
 
 class IntentIR(BaseModel):
+    """
+    Root Intent IR document — the full modeling plan from one chat turn.
+
+    Required: type, prompt, summary, target.
+    Everything else defaults to empty collections.
+    """
+
     model_config = ConfigDict(extra="forbid", strict=True)
 
     type: IntentType

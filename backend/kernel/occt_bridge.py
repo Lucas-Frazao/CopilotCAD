@@ -1,8 +1,29 @@
-"""Direct pythonOCC calls — sole OCCT entry point for CopilotCAD (F-003).
+"""
+OCCT Bridge — Sole pythonOCC Entry Point (F-003)
+=================================================
 
-All Open CASCADE / pythonOCC imports must live in this module only.
-Requires pythonocc-core on Python 3.11+; some platforms (e.g. Windows ARM64)
-may not have wheels — tests skip when OCC is unavailable.
+WHAT THIS FILE DOES
+-------------------
+All real 3D geometry in CopilotCAD flows through this module:
+
+  sketch → extrude → holes → fuse → tessellate → STEP/IGES export
+
+ARCHITECTURE RULE (critical)
+----------------------------
+**Every** Open CASCADE / pythonOCC import must live here only. Other backend
+code calls ``kernel_adapter`` or lazy-imports functions from this file.
+
+PLATFORM NOTE
+-------------
+Requires pythonocc-core on Python 3.11+. Some platforms (e.g. Windows ARM64)
+may lack wheels — tests skip when OCC is unavailable.
+
+OCCT CONCEPTS FOR BEGINNERS
+---------------------------
+- TopoDS_Shape — generic boundary representation (wire, face, solid, ...)
+- Wire / Face — 2D sketch profile before extrusion
+- Boolean Cut / Fuse — subtract or merge solids
+- Tessellation — turn curved faces into triangles for the viewport
 """
 
 from __future__ import annotations
@@ -10,30 +31,32 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Union
 
-from OCC.Core.Bnd import Bnd_Box
-from OCC.Core.BRepAdaptor import BRepAdaptor_Surface
-from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse
-from OCC.Core.BRepBndLib import brepbndlib
+# --- Open CASCADE imports (ONLY allowed in this file) ---
+from OCC.Core.Bnd import Bnd_Box  # Axis-aligned bounding box
+from OCC.Core.BRepAdaptor import BRepAdaptor_Surface  # Surface type queries
+from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse  # Boolean ops
+from OCC.Core.BRepBndLib import brepbndlib  # Add shape to bounding box
 from OCC.Core.BRepBuilderAPI import (
     BRepBuilderAPI_MakeEdge,
     BRepBuilderAPI_MakeFace,
     BRepBuilderAPI_MakeWire,
 )
-from OCC.Core.BRep import BRep_Tool
-from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh
+from OCC.Core.BRep import BRep_Tool  # Extract triangulation from faces
+from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh  # Mesh generator
 from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
-from OCC.Core.GeomAbs import GeomAbs_Plane
-from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec
-from OCC.Core.IFSelect import IFSelect_RetDone
+from OCC.Core.GeomAbs import GeomAbs_Plane  # Enum: surface is a plane
+from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec  # Geometry primitives (points, vectors, axes)
+from OCC.Core.IFSelect import IFSelect_RetDone  # Success return code for readers/writers
 from OCC.Core.IGESControl import IGESControl_Writer
 from OCC.Core.STEPControl import STEPControl_AsIs, STEPControl_Reader, STEPControl_Writer
-from OCC.Core.TopAbs import TopAbs_FACE
-from OCC.Core.TopExp import TopExp_Explorer
-from OCC.Core.TopLoc import TopLoc_Location
-from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Shape, topods
+from OCC.Core.TopAbs import TopAbs_FACE  # Shape type enum: face
+from OCC.Core.TopExp import TopExp_Explorer  # Iterate child shapes
+from OCC.Core.TopLoc import TopLoc_Location  # Placement transform on a shape
+from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Shape, topods  # TopoDS types + casts
 
 PathLike = Union[str, Path]
 
+# MVP only supports a subset of planes, directions, and modes — validated below
 SUPPORTED_PLANES = frozenset({"XY"})
 SUPPORTED_DIRECTIONS = frozenset({"+Z"})
 SUPPORTED_SKETCH_MODES = frozenset({"center"})
@@ -61,6 +84,7 @@ def _require_shape(name: str, shape: TopoDS_Shape) -> None:
 
 
 def _shape_bbox(shape: TopoDS_Shape) -> tuple[float, float, float, float, float, float]:
+    """Return (xmin, ymin, zmin, xmax, ymax, zmax) for a shape."""
     box = Bnd_Box()
     brepbndlib.Add(shape, box)
     return box.Get()
@@ -72,7 +96,12 @@ def sketch_rectangle(
     plane: str,
     mode: str,
 ) -> TopoDS_Shape:
-    """Build a rectangular sketch profile on the requested plane."""
+    """
+    Build a rectangular sketch profile on the requested plane.
+
+    "center" mode places the rectangle centered on the origin in XY.
+    Returns a TopoDS_Face (closed wire filled as a face).
+    """
     _require_positive("length", length)
     _require_positive("width", width)
     _require_in("plane", plane, SUPPORTED_PLANES)
@@ -82,6 +111,7 @@ def sketch_rectangle(
     half_width = width / 2.0
 
     if plane == "XY":
+        # Four corners of the rectangle in the Z=0 plane
         p1 = gp_Pnt(-half_length, -half_width, 0.0)
         p2 = gp_Pnt(half_length, -half_width, 0.0)
         p3 = gp_Pnt(half_length, half_width, 0.0)
@@ -89,6 +119,7 @@ def sketch_rectangle(
     else:
         raise GeometryError(f"unsupported plane: {plane}")
 
+    # Wire = closed loop of edges
     wire_builder = BRepBuilderAPI_MakeWire()
     wire_builder.Add(BRepBuilderAPI_MakeEdge(p1, p2).Edge())
     wire_builder.Add(BRepBuilderAPI_MakeEdge(p2, p3).Edge())
@@ -111,7 +142,7 @@ def extrude(
     direction: str,
     mode: str,
 ) -> TopoDS_Shape:
-    """Extrude a profile shape into a solid."""
+    """Extrude a profile shape into a solid along direction (+Z in MVP)."""
     _require_shape("profile", profile)
     _require_positive("distance", distance)
     _require_in("direction", direction, SUPPORTED_DIRECTIONS)
@@ -123,6 +154,7 @@ def extrude(
     else:
         raise GeometryError(f"unsupported direction: {direction}")
 
+    # Prism = linear sweep of a face along a vector
     prism = BRepPrimAPI_MakePrism(face, vec)
     if not prism.IsDone():
         raise GeometryError("extrude failed")
@@ -151,6 +183,7 @@ def hole_pattern_corners(
         raise GeometryError("offset too large for plate dimensions")
 
     radius = diameter / 2.0
+    # Slightly taller cylinder than plate ensures clean through-cut
     cut_height = thickness + 2e-4
     cylinder_base_z = zmin - 1e-4
 
@@ -218,7 +251,7 @@ def build_mounting_plate_golden() -> TopoDS_Shape:
 
 
 def fuse_shapes(shape_a: TopoDS_Shape, shape_b: TopoDS_Shape) -> TopoDS_Shape:
-    """Fuse two solids into one combined shape."""
+    """Fuse two solids into one combined shape (boolean union)."""
     _require_shape("shape_a", shape_a)
     _require_shape("shape_b", shape_b)
     fuse = BRepAlgoAPI_Fuse(shape_a, shape_b)
@@ -240,7 +273,15 @@ def make_box(length: float, width: float, height: float) -> TopoDS_Shape:
 
 
 def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, list]:
-    """Triangulate a shape for viewport rendering."""
+    """
+    Triangulate a shape for viewport rendering.
+
+    Returns flat arrays:
+    - vertices: [x0,y0,z0, x1,y1,z1, ...]
+    - normals:  per-vertex normals (same length as vertices)
+    - indices:  triangle corner indices into vertices
+    - face_ids: which OCCT face each triangle belongs to
+    """
     _require_shape("shape", shape)
 
     mesh = BRepMesh_IncrementalMesh(shape, deflection)
@@ -278,7 +319,7 @@ def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, 
                 normal.Transform(transform)
                 normals.extend([normal.X(), normal.Y(), normal.Z()])
         else:
-            # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use a stable fallback.
+            # OCCT 7.9 removed Poly_Triangulation.ComputeNormal; use plane direction fallback
             face_normal = gp_Dir(0.0, 0.0, 1.0)
             adaptor = BRepAdaptor_Surface(face)
             if adaptor.GetType() == GeomAbs_Plane:
@@ -290,6 +331,7 @@ def tessellate_shape(shape: TopoDS_Shape, deflection: float = 0.5) -> dict[str, 
         for triangle_index in range(1, triangle_count + 1):
             triangle = triangulation.Triangle(triangle_index)
             n1, n2, n3 = triangle.Get()
+            # OCCT node indices are 1-based; convert to 0-based for WebGL
             indices.extend(
                 [
                     vertex_offset + n1 - 1,
@@ -326,6 +368,7 @@ def export_iges(shape: TopoDS_Shape, path: PathLike) -> None:
 
 
 def _as_face(profile: TopoDS_Shape) -> TopoDS_Face:
+    """Accept a face directly, or extract the first face from a compound/wire."""
     if profile.ShapeType() == TopAbs_FACE:
         return topods.Face(profile)
 

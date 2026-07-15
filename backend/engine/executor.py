@@ -1,16 +1,36 @@
-"""Sequences IR steps and dispatches to handlers (F-004)."""
+"""
+Intent IR Executor — Run Steps End-to-End (F-004)
+=================================================
 
-from __future__ import annotations
+WHAT THIS FILE DOES
+-------------------
+Takes a validated ``IntentIR`` object and runs its ``steps`` array in order.
+Each step produces geometry stored in a ``shapes`` dict keyed by step id.
+When done, optionally writes results to the workspace (spec, geometry, history).
 
-import uuid
-from datetime import datetime, timezone
-from pathlib import Path
+MAIN ENTRY POINT
+----------------
+``execute_intent_ir(intent, workspace_path)`` → ``ExecutionResult``
+
+HELPER FUNCTIONS (private, prefixed with _)
+-------------------------------------------
+- ``_resolve_workspace`` — find on-disk project folder from args or IR context
+- ``_preload_assembly_shapes`` — load existing part geometry for assembly mates
+- ``_persist_part_results`` — save spec, assumptions, geometry, history after a part run
+- ``_handle_assembly_create`` — shortcut when assembly_create has no geometry steps
+"""
+
+from __future__ import annotations  # Allows forward references in type hints
+
+import uuid  # Short unique ids for history entries
+from datetime import datetime, timezone  # UTC timestamps for audit trail
+from pathlib import Path  # Cross-platform file paths
 from typing import Any
 
-import yaml
+import yaml  # Read/write spec.yaml and assumptions.yaml
 
 from engine.errors import ExecutionError, StepNotImplementedError
-from engine.execution_result import ExecutionResult
+from engine.execution_result import ExecutionResult  # success, step_ids, shapes, error
 from engine.handler_registry import get_handler
 from project.geometry_cache import cache_session_shape, save_part_geometry
 from project.part_folder import (
@@ -23,6 +43,7 @@ from schemas.intent_ir import IntentIR
 
 
 def _resolve_workspace(intent: IntentIR, workspace_path: Path | str | None) -> Path | None:
+    """Pick workspace path: explicit argument wins, else IR context field."""
     if workspace_path is not None:
         return Path(workspace_path)
     context_path = intent.context.workspace_path
@@ -32,6 +53,12 @@ def _resolve_workspace(intent: IntentIR, workspace_path: Path | str | None) -> P
 
 
 def _assembly_instances(intent: IntentIR) -> list[dict[str, str]]:
+    """
+    Extract assembly instance list from IR.
+
+    Tries structured ``constraints.instances`` first, then a legacy nested
+    location under ``constraints.dimensions.instances``.
+    """
     instances = intent.constraints.instances
     if instances:
         return [
@@ -49,6 +76,7 @@ def _assembly_instances(intent: IntentIR) -> list[dict[str, str]]:
 
 
 def _preload_assembly_shapes(workspace: Path, intent: IntentIR) -> dict[str, Any]:
+    """Load each assembly instance's part geometry into shapes[instance_id]."""
     from project.assembly_folder import read_assembly
     from project.geometry_cache import load_part_geometry
 
@@ -75,6 +103,7 @@ def _preload_assembly_shapes(workspace: Path, intent: IntentIR) -> dict[str, Any
 
 
 def _write_spec(workspace: Path, part_id: str, intent: IntentIR) -> None:
+    """Merge defaults into parts/<id>/spec.yaml without wiping existing fields."""
     spec_path = workspace / "parts" / part_id / SPEC_FILENAME
     spec: dict[str, Any] = {}
     if spec_path.is_file():
@@ -90,6 +119,7 @@ def _write_spec(workspace: Path, part_id: str, intent: IntentIR) -> None:
 
 
 def _write_assumptions(workspace: Path, part_id: str, intent: IntentIR) -> None:
+    """Overwrite assumptions.yaml when the IR carries assumption objects."""
     if not intent.assumptions:
         return
 
@@ -102,6 +132,7 @@ def _write_assumptions(workspace: Path, part_id: str, intent: IntentIR) -> None:
 
 
 def _append_execute_history(workspace: Path, part_id: str, intent: IntentIR, result: ExecutionResult) -> None:
+    """Record an 'execute' event in parts/<id>/history.json."""
     from project.history import append_history_entry
 
     append_history_entry(
@@ -119,6 +150,7 @@ def _append_execute_history(workspace: Path, part_id: str, intent: IntentIR, res
 
 
 def _persist_part_results(workspace: Path, intent: IntentIR, result: ExecutionResult) -> None:
+    """Full persist path for part_create / part_edit intents."""
     part_id = intent.target.part_id or intent.context.active_part_id
     if not part_id:
         return
@@ -133,6 +165,11 @@ def _persist_part_results(workspace: Path, intent: IntentIR, result: ExecutionRe
 
 
 def _handle_assembly_create(workspace: Path | None, intent: IntentIR) -> ExecutionResult | None:
+    """
+    Assembly scaffold-only path: no steps means just create folders/YAML.
+
+    Returns an ExecutionResult when handled, or None to continue normal execution.
+    """
     if intent.type != "assembly_create":
         return None
 
@@ -150,7 +187,15 @@ def execute_intent_ir(
     intent: IntentIR,
     workspace_path: Path | str | None = None,
 ) -> ExecutionResult:
-    """Execute a validated IntentIR step-by-step and return an ExecutionResult."""
+    """
+    Execute a validated IntentIR step-by-step and return an ExecutionResult.
+
+    Flow:
+      1. Resolve workspace
+      2. Handle assembly_create shortcut if applicable
+      3. Loop steps: validate deps → get_handler → run → store shape
+      4. Persist to disk and session cache
+    """
     workspace = _resolve_workspace(intent, workspace_path)
 
     assembly_only = _handle_assembly_create(workspace, intent)
@@ -164,6 +209,7 @@ def execute_intent_ir(
             error="Intent IR has no steps to execute",
         )
 
+    # shapes[step_id] = OCCT shape output; also keyed by instance_id for assemblies
     shapes: dict[str, Any] = {}
     if workspace is not None and intent.type == "assembly_create":
         shapes.update(_preload_assembly_shapes(workspace, intent))
@@ -172,6 +218,7 @@ def execute_intent_ir(
 
     try:
         for step in steps:
+            # from_step must reference a step that already ran (no forward refs)
             if step.from_step is not None and step.from_step not in shapes:
                 raise ExecutionError(
                     f"step '{step.id}' references missing or forward dependency '{step.from_step}'"
@@ -189,6 +236,7 @@ def execute_intent_ir(
             shapes_by_step_id=dict(shapes),
         )
     except Exception as exc:  # noqa: BLE001
+        # Unexpected bugs — log full traceback to stderr for developers
         import sys
         import traceback
 
@@ -210,6 +258,7 @@ def execute_intent_ir(
     )
 
     if workspace is not None:
+        # After mate steps, wire interface connects_to fields in part specs
         if intent.type == "assembly_create" and any(step.op.startswith("mate_") for step in steps):
             from assembly.interface_linking import apply_interface_links_for_mate
 
@@ -223,6 +272,7 @@ def execute_intent_ir(
                 create_part_folder(workspace, part_id)
                 save_part_geometry(workspace, part_id, result.final_shape)
 
+    # Session cache keeps geometry available even without a workspace write
     part_id = intent.target.part_id or intent.context.active_part_id
     if part_id and result.final_shape is not None:
         cache_session_shape(part_id, result.final_shape)

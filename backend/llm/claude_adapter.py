@@ -1,10 +1,28 @@
-"""Claude API implementation of LLMAdapter (F-005)."""
+"""
+Claude Adapter — Anthropic API for Intent IR (F-005)
+====================================================
 
-import json
-import os
+WHAT THIS FILE DOES
+-------------------
+Calls the Anthropic Claude API with a strict system prompt so the model returns
+JSON matching the Intent IR schema — no markdown fences or commentary.
+
+CONFIGURATION (environment variables)
+-------------------------------------
+- ANTHROPIC_API_KEY — required API key
+- COPILOTCAD_CLAUDE_MODEL — optional override (default: claude-sonnet-4-6)
+
+SECURITY NOTE
+-------------
+Project context is JSON-serialized, capped at MAX_CONTEXT_CHARS, and wrapped in
+XML-like tags so it is clearly separated from the user's instruction.
+"""
+
+import json  # Serialize project_context dict for the prompt
+import os  # Read API key and model from environment
 from typing import Any
 
-from anthropic import Anthropic, APIError
+from anthropic import Anthropic, APIError  # Official Anthropic Python SDK
 
 from llm.adapter import LLMAdapter
 from llm.errors import LLMConfigurationError, LLMError
@@ -14,9 +32,7 @@ DEFAULT_MODEL = "claude-sonnet-4-6"
 MODEL_ENV = "COPILOTCAD_CLAUDE_MODEL"
 API_KEY_ENV = "ANTHROPIC_API_KEY"
 
-# Upper bound on serialized project-context characters injected into the prompt.
-# Caps token cost and limits the blast radius of any untrusted workspace content
-# (prompt-injection) that rides along in the context payload.
+# Limit injected context size — controls token cost and prompt-injection surface
 MAX_CONTEXT_CHARS = 8000
 
 
@@ -43,10 +59,9 @@ class ClaudeAdapter(LLMAdapter):
         project_context: dict[str, Any] | None = None,
     ) -> str:
         user_content = user_message
+
         if project_context:
-            # default=str keeps non-JSON-native values from raising; the cap and
-            # explicit delimiters bound cost and clearly separate untrusted context
-            # data from the user's instruction.
+            # default=str avoids TypeError on non-JSON-native values (e.g. datetime)
             context_json = json.dumps(project_context, default=str)
             if len(context_json) > MAX_CONTEXT_CHARS:
                 context_json = context_json[:MAX_CONTEXT_CHARS] + "…[truncated]"
@@ -71,6 +86,7 @@ class ClaudeAdapter(LLMAdapter):
         except Exception as exc:
             raise LLMError(f"LLM request failed: {exc}") from exc
 
+        # Response may contain multiple content blocks; collect all text parts
         text_parts: list[str] = []
         for block in response.content:
             if block.type == "text":

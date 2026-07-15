@@ -1,4 +1,21 @@
-"""Workspace edition capability checks (F-027)."""
+"""
+Workspace Capabilities — Edition Limit Checks (F-027)
+=====================================================
+
+WHAT THIS FILE DOES
+-------------------
+Reads limits from ``copilotcad.json`` (community vs paid edition) and soft-checks
+whether an action exceeds them. MVP logs a warning but does not block.
+
+EXAMPLE LIMITS
+--------------
+max_parts, max_assemblies — compared against current_count in check_capability.
+
+RETURNS
+-------
+"ok"   — within limit or no limit defined
+"warn" — over limit (logged via Python logging)
+"""
 
 from __future__ import annotations
 
@@ -13,6 +30,7 @@ CapabilityResult = Literal["ok", "warn"]
 
 
 def format_limit_warning(limit_key: str, *, limit: int, current: int) -> str:
+    """Human-readable message for UI or logs."""
     return (
         f"Community edition limit reached for {limit_key} "
         f"({current}/{limit}). Upgrade for higher limits."
@@ -39,6 +57,7 @@ def check_capability(
 
 
 def capabilities_payload(manifest: WorkspaceManifest) -> dict[str, Any]:
+    """Flatten manifest edition + capabilities for JSON-RPC responses."""
     caps = manifest.capabilities.model_dump()
     return {
         "edition": manifest.edition,

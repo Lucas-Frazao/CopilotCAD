@@ -1,4 +1,22 @@
-"""Validates IR and execution outcomes; returns structured Problem objects (F-006)."""
+"""
+Problems Engine — Structured Issue Detection (F-006)
+======================================================
+
+WHAT THIS FILE DOES
+-------------------
+After Intent IR is built (and optionally executed), this module scans for
+issues that should surface in the Problems panel: blocking questions, failed
+geometry, mate errors, traceability gaps, etc.
+
+OUTPUT
+------
+List of ``Problem`` Pydantic objects (serialized to dicts via problems_to_dicts).
+
+CHECK FUNCTIONS (private)
+---------------------------
+Each ``_check_*`` returns zero or more Problems for one concern area.
+``evaluate_problems`` runs all checks and concatenates results.
+"""
 
 from typing import Any
 
@@ -8,6 +26,7 @@ from schemas.problem import Problem
 
 
 def problems_to_dicts(problems: list[Problem]) -> list[dict[str, Any]]:
+    """Convert Problem models to plain dicts for JSON-RPC."""
     return [problem.model_dump() for problem in problems]
 
 
@@ -16,6 +35,7 @@ def _part_id(intent: IntentIR) -> str | None:
 
 
 def _check_missing_required_input(intent: IntentIR) -> list[Problem]:
+    """Blocking open questions prevent safe execution."""
     problems: list[Problem] = []
     part_id = _part_id(intent)
     for question in intent.questions:
@@ -37,6 +57,7 @@ def _check_missing_required_input(intent: IntentIR) -> list[Problem]:
 
 
 def _check_unresolved_assumption(intent: IntentIR) -> list[Problem]:
+    """High-importance assumptions still in 'proposed' state warrant a warning."""
     problems: list[Problem] = []
     part_id = _part_id(intent)
     for assumption in intent.assumptions:
@@ -60,6 +81,7 @@ def _check_unresolved_assumption(intent: IntentIR) -> list[Problem]:
 def _check_geometry_generation_failure(
     execution_result: ExecutionResult | None,
 ) -> list[Problem]:
+    """Map executor failure to a user-visible geometry error."""
     if execution_result is None or execution_result.success:
         return []
 
@@ -79,6 +101,7 @@ def _check_geometry_generation_failure(
 
 
 def _check_interface_conflict(intent: IntentIR) -> list[Problem]:
+    """Duplicate interface names in assembly constraints are ambiguous."""
     if intent.type != "assembly_create":
         return []
 
@@ -113,14 +136,13 @@ def _check_interface_conflict(intent: IntentIR) -> list[Problem]:
 
 
 def _check_invalid_mate(intent: IntentIR) -> list[Problem]:
+    """Mate steps should include target and mate_type in params (future solver)."""
     problems: list[Problem] = []
     part_id = _part_id(intent)
     for step in intent.steps:
         if not step.op.startswith("mate_"):
             continue
         params = step.params
-        # An empty params dict is already covered by both checks below, so the
-        # two missing-key tests fully describe an incomplete mate.
         missing_target = "target" not in params
         missing_mate_type = "mate_type" not in params
         if missing_target or missing_mate_type:
@@ -142,6 +164,7 @@ def _check_invalid_mate(intent: IntentIR) -> list[Problem]:
 
 
 def _check_manufacturing_rule_warning(intent: IntentIR) -> list[Problem]:
+    """Process set without dimensions cannot be validated against limits."""
     if not intent.constraints.process:
         return []
 
@@ -168,6 +191,7 @@ def _check_manufacturing_rule_warning(intent: IntentIR) -> list[Problem]:
 
 
 def _check_traceability_gap(intent: IntentIR) -> list[Problem]:
+    """Parts should link to spec_refs for requirements traceability."""
     if intent.type not in {"part_create", "part_edit"}:
         return []
 

@@ -1,4 +1,20 @@
-"""Part mesh payload builder for viewport rendering (F-011)."""
+"""
+Part Mesh Builder — 3D Viewport Triangles (F-011)
+=================================================
+
+WHAT THIS FILE DOES
+-------------------
+Converts an OCCT TopoDS shape into a JSON-friendly mesh payload the Electron
+viewport can render: vertices, normals, triangle indices, and per-triangle face ids.
+
+DATA FLOW
+---------
+  OCCT shape → occt_bridge.tessellate_shape → dict → JSON-RPC → Three.js mesh
+
+EMPTY SHAPE
+-----------
+Returns empty lists when shape is None so the UI can clear the viewport safely.
+"""
 
 from __future__ import annotations
 

@@ -1,4 +1,20 @@
-"""Part history read/write (F-017)."""
+"""
+Part History — Audit Trail in history.json (F-017)
+==================================================
+
+WHAT THIS FILE DOES
+-------------------
+Appends and reads timestamped events for a part: executes, exports, slash
+commands, approvals, assumption changes.
+
+FILE FORMAT
+-----------
+parts/<part_id>/history.json → {"events": [ HistoryEntry, ... ]}
+
+VALIDATION
+----------
+HistoryEntry is a strict Pydantic model — unknown fields are rejected.
+"""
 
 from __future__ import annotations
 
@@ -50,6 +66,7 @@ def _write_events(workspace: Path, part_id: str, events: list[dict[str, Any]]) -
 
 
 def append_history_entry(workspace: Path, part_id: str, entry: dict[str, Any]) -> HistoryEntry:
+    """Validate, append, and persist one history event."""
     validated = validate_history_entry(entry)
     events = _read_events(workspace, part_id)
     events.append(validated.model_dump())
@@ -67,6 +84,7 @@ def append_export_history(
     export_path: Path,
     export_format: str,
 ) -> HistoryEntry:
+    """Convenience wrapper for export events."""
     entry = {
         "id": f"export-{uuid.uuid4().hex[:8]}",
         "timestamp": datetime.now(timezone.utc).isoformat(),

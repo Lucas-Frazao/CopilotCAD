@@ -1,4 +1,21 @@
-"""Read/write copilotcad.json and top-level workspace structure."""
+"""
+Workspace Root — copilotcad.json Manifest (F-009 base)
+======================================================
+
+WHAT THIS FILE DOES
+-------------------
+Creates and loads a CopilotCAD project folder. The manifest file
+``copilotcad.json`` stores project name, edition, and capability limits.
+
+STANDARD DIRECTORIES
+--------------------
+docs/, parts/, assemblies/, exports/ — created on workspace init.
+
+EXCEPTIONS
+----------
+- WorkspaceNotFoundError — path missing or no manifest
+- WorkspaceInvalidError — JSON parse or Pydantic validation failure
+"""
 
 import json
 from pathlib import Path

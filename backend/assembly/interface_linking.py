@@ -1,4 +1,23 @@
-"""Interface linking for assembly mates (F-021)."""
+"""
+Interface Linking — Mate → spec.yaml connects_to (F-021)
+========================================================
+
+WHAT THIS FILE DOES
+-------------------
+When assembly mate steps run, this module updates each part's spec.yaml so
+matching interfaces record bidirectional ``connects_to`` links.
+
+WORKFLOW
+--------
+1. Read interface_refs from intent.links (need at least two ids)
+2. Find which part owns each interface id
+3. Write connects_to {part_id, interface_id} on both sides
+4. evaluate_interface_conflicts scans for bolt_pattern mismatches
+
+FILES TOUCHED
+-------------
+parts/<part_id>/spec.yaml — interfaces[].connects_to fields only
+"""
 
 from __future__ import annotations
 
@@ -13,6 +32,7 @@ from schemas.problem import Problem
 
 
 def resolve_interface_pair(intent: IntentIR) -> tuple[str, str] | None:
+    """Return first two interface_refs if present, else None."""
     refs = intent.links.interface_refs
     if len(refs) >= 2:
         return refs[0], refs[1]
@@ -34,6 +54,7 @@ def _save_part_spec(workspace: Path, part_id: str, spec: dict[str, Any]) -> None
 
 
 def _find_interface_owner(workspace: Path, interface_id: str) -> tuple[str, dict[str, Any]] | None:
+    """Scan all parts to find which spec contains interface_id."""
     parts_dir = workspace / PARTS_DIR
     if not parts_dir.is_dir():
         return None
@@ -60,6 +81,7 @@ def _set_connects_to(
     part_id: str,
     remote_interface_id: str,
 ) -> None:
+    """Mutate one interface entry's connects_to field in-place."""
     interfaces = spec.get("interfaces", [])
     for interface in interfaces:
         if interface.get("id") != interface_id:
@@ -71,6 +93,7 @@ def _set_connects_to(
 
 
 def apply_interface_links_for_mate(workspace: Path, intent: IntentIR) -> None:
+    """After mate execution, persist reciprocal interface links in part specs."""
     pair = resolve_interface_pair(intent)
     if pair is None:
         return
@@ -92,6 +115,7 @@ def apply_interface_links_for_mate(workspace: Path, intent: IntentIR) -> None:
 
 
 def evaluate_interface_conflicts(workspace: Path) -> list[Problem]:
+    """Detect bolt_pattern mismatches between linked interfaces across parts."""
     problems: list[Problem] = []
     interfaces_by_part: list[tuple[str, dict[str, Any]]] = []
 

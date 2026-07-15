@@ -1,4 +1,17 @@
-"""Local model adapter stub (F-005)."""
+"""
+Local LLM Adapter — Future On-Device Model Stub (F-005)
+=========================================================
+
+WHAT THIS FILE DOES
+-------------------
+Placeholder for a future local/offline LLM. Implements the same interface as
+``ClaudeAdapter`` but is not wired up in the MVP.
+
+MVP STATUS
+----------
+Explicitly out of scope per F-005 non-goals — calling it raises
+``NotImplementedError`` with a helpful message.
+"""
 
 from typing import Any
 

@@ -1,4 +1,20 @@
-"""Parts panel listing (F-015)."""
+"""
+Parts Panel Listing — parts/<id>/ Rows (F-015)
+==============================================
+
+WHAT THIS FILE DOES
+-------------------
+Scans the workspace parts/ directory and returns table rows for the Parts panel
+in the Electron UI.
+
+ROW FIELDS
+----------
+part_id, name, maturity, open_problem_count (0 in MVP — filled by frontend later)
+
+SKIPS
+-----
+Folders without a readable spec.yaml are omitted.
+"""
 
 from __future__ import annotations
 

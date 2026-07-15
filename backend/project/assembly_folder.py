@@ -1,4 +1,17 @@
-"""Assembly YAML read/write and assembly_create scaffolding (F-018)."""
+"""
+Assembly Folder — assemblies/<id>.yaml (F-018)
+==============================================
+
+WHAT THIS FILE DOES
+-------------------
+Reads and writes assembly definition YAML files. An assembly lists *instances*
+— each instance references a part_id placed in the assembly.
+
+EXECUTE PATH
+------------
+``execute_assembly_create`` scaffolds part folders + assembly YAML from an
+assembly_create Intent IR (when executor has no geometry steps).
+"""
 
 from __future__ import annotations
 
@@ -21,7 +34,7 @@ def _assembly_path(workspace: Path, assembly_id: str) -> Path:
 
 
 def create_assembly(workspace: Path, assembly_id: str, data: dict[str, Any]) -> Path:
-    """Write assemblies/<id>.yaml."""
+    """Write assemblies/<id>.yaml with id, name, and instances list."""
     path = _assembly_path(workspace, assembly_id)
     path.parent.mkdir(parents=True, exist_ok=True)
     payload = {
@@ -44,6 +57,7 @@ def read_assembly(workspace: Path, assembly_id: str) -> dict[str, Any]:
 
 
 def _instances_from_ir(ir_data: dict[str, Any]) -> list[dict[str, str]]:
+    """Extract [{instance_id, part_id}, ...] from IR constraints."""
     constraints = ir_data.get("constraints", {})
     if not isinstance(constraints, dict):
         return []

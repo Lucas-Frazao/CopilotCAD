@@ -1,4 +1,22 @@
-"""STEP/IGES export helpers (F-024)."""
+"""
+Export Polish — STEP/IGES + History (F-024)
+============================================
+
+WHAT THIS FILE DOES
+-------------------
+Higher-level export API used by slash commands and RPC:
+
+- export_part / export_assembly — write to workspace/exports/
+- export_part_with_history — also appends history.json export event
+
+FORMATS
+-------
+"step" (default) or "iges" via occt_bridge.
+
+ERRORS
+------
+ExportError when no geometry exists for the requested part.
+"""
 
 from __future__ import annotations
 
@@ -36,6 +54,7 @@ def export_part(
     *,
     format: ExportFormat = "step",
 ) -> Path:
+    """Export one part's geometry to exports/<part_id>.step or .iges."""
     shape = _require_geometry(workspace, part_id)
     exports = _exports_dir(workspace)
 
@@ -59,6 +78,11 @@ def export_assembly(
     *,
     format: ExportFormat = "step",
 ) -> Path:
+    """
+    MVP assembly export: exports primary instance's part geometry only.
+
+    Full fused assembly export is a future enhancement.
+    """
     from project.assembly_folder import read_assembly
 
     assembly = read_assembly(workspace, assembly_id)
@@ -90,6 +114,7 @@ def export_part_with_history(
     *,
     format: ExportFormat = "step",
 ) -> Path:
+    """Export part and record an export event in history.json."""
     out_path = export_part(workspace, part_id, format=format)
     append_export_history(workspace, part_id, out_path, format)
     return out_path

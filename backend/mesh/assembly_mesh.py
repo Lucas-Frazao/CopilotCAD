@@ -1,4 +1,22 @@
-"""Assembly mesh payload builder for multi-instance viewport (F-020)."""
+"""
+Assembly Mesh Builder — Multi-Instance Viewport (F-020)
+=======================================================
+
+WHAT THIS FILE DOES
+-------------------
+Builds one mesh payload per assembly instance for the 3D viewport. Each instance
+includes its own transform matrix (4×4 column-major) for positioning.
+
+FALLBACK BEHAVIOR
+-----------------
+- If assembly YAML is missing, scans parts/ folder for up to MAX_ASSEMBLY_INSTANCES
+- Missing geometry → 10 mm placeholder box from occt_bridge
+- Multiple instances get slight X-offset so stacked placeholders remain visible
+
+OUTPUT SHAPE
+------------
+{"meshes": [{instance_id, part_id, vertices, normals, indices, face_ids, transform}, ...]}
+"""
 
 from __future__ import annotations
 
@@ -11,6 +29,7 @@ from project.geometry_cache import load_part_geometry
 
 MAX_ASSEMBLY_INSTANCES = 5
 
+# 4×4 identity matrix (column-major) — no rotation or translation
 _IDENTITY_TRANSFORM = [
     1.0,
     0.0,
@@ -45,6 +64,7 @@ def build_assembly_mesh_payload(workspace: Path, assembly_id: str) -> dict[str, 
     except Exception:
         instances = []
 
+    # Dev fallback: treat each part folder as a pseudo-instance
     if not instances:
         parts_dir = workspace / "parts"
         if parts_dir.is_dir():
@@ -79,7 +99,7 @@ def build_assembly_mesh_payload(workspace: Path, assembly_id: str) -> dict[str, 
                 "transform": _IDENTITY_TRANSFORM,
             }
         )
-        # Offset stacked instances slightly for visibility when using placeholders.
+        # Stagger instances along +X when previewing multiple parts
         if len(meshes) > 1 and shape is not None:
             offset = index * 15.0
             meshes[-1]["transform"] = [

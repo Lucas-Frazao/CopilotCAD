@@ -1,4 +1,22 @@
-"""extrude step handler (F-004)."""
+"""
+Extrude Handler — Profile → Solid Step (F-004)
+==============================================
+
+WHAT THIS FILE DOES
+-------------------
+Runs the ``extrude`` IR step: takes a 2D profile from a prior step and sweeps
+it into a 3D solid along an axis.
+
+PARAMS
+------
+- distance — extrusion depth in mm
+- direction — e.g. "+Z"
+- mode — e.g. "add"
+
+DEPENDENCIES
+------------
+Requires ``step.from_step`` pointing at a sketch (or other face-producing step).
+"""
 
 from typing import Any
 
@@ -14,6 +32,7 @@ def _require_param(params: dict[str, Any], name: str) -> Any:
 
 
 def _require_input_shape(step: IRStep, shapes: dict[str, Any]) -> Any:
+    """Look up the parent step's geometry output in the shapes dict."""
     if step.from_step is None:
         raise ExecutionError(f"step '{step.id}' requires a from dependency")
     if step.from_step not in shapes:
@@ -24,6 +43,7 @@ def _require_input_shape(step: IRStep, shapes: dict[str, Any]) -> Any:
 
 
 def handle_extrude(step: IRStep, shapes: dict[str, Any]) -> Any:
+    """Execute extrude: pull profile from shapes, forward params to kernel."""
     profile = _require_input_shape(step, shapes)
     params = step.params
     return kernel_adapter.extrude(

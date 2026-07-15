@@ -1,9 +1,29 @@
-"""Pending high-risk intent store (F-022)."""
+"""
+Pending Intent Store — High-Risk Approval Queue (F-022)
+=======================================================
+
+WHAT THIS FILE DOES
+-------------------
+When the risk classifier marks an intent as "high", execution is paused and the
+intent is stored here until the user approves or rejects it.
+
+IN-MEMORY STORE
+---------------
+``PendingIntentStore`` keeps records in a dict keyed by pending_id (UUID hex).
+This is process-local — restarting the backend clears pending items.
+
+WORKFLOW
+--------
+  add(intent) → pending_id
+  get(pending_id) → intent dict
+  mark_executed / mark_rejected → update status
+  reject_pending → mark rejected + optional history log
+"""
 
 from __future__ import annotations
 
-import uuid
-from dataclasses import dataclass, field
+import uuid  # Generate unique pending_id values
+from dataclasses import dataclass, field  # Lightweight record types
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -11,17 +31,21 @@ from typing import Any
 
 @dataclass
 class PendingRecord:
+    """One queued high-risk intent awaiting user decision."""
     intent: dict[str, Any]
     created_at: str
-    status: str = "pending"
+    status: str = "pending"  # pending | executed | rejected
     rejected_at: str | None = None
 
 
 class PendingIntentStore:
+    """In-memory map of pending_id → PendingRecord."""
+
     def __init__(self) -> None:
         self._records: dict[str, PendingRecord] = {}
 
     def add(self, intent: dict[str, Any]) -> str:
+        """Store intent and return its pending_id."""
         pending_id = uuid.uuid4().hex
         self._records[pending_id] = PendingRecord(
             intent=intent,
@@ -55,6 +79,7 @@ def log_rejection_to_history(
     pending_id: str,
     summary: str,
 ) -> None:
+    """Write an 'approval' rejection event to parts/<id>/history.json."""
     from project.history import append_history_entry
 
     append_history_entry(
@@ -76,6 +101,7 @@ def reject_pending(
     *,
     workspace_path: Path | None = None,
 ) -> None:
+    """Reject a pending intent and optionally log to part history."""
     intent = store.get(pending_id)
     if intent is None:
         raise KeyError(f"pending intent not found: {pending_id}")

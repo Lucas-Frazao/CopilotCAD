@@ -1,4 +1,21 @@
-"""Interfaces panel listing (F-016)."""
+"""
+Interfaces Panel Listing — Cross-Part Interface Rows (F-016)
+============================================================
+
+WHAT THIS FILE DOES
+-------------------
+Walks every part's spec.yaml and flattens interfaces[] into rows for the
+Interfaces panel.
+
+STATUS FIELD
+------------
+- "open"   — connects_to is empty/null
+- "linked" — connects_to references another part's interface
+
+ROW FIELDS
+----------
+part_id, interface_id, name, type, status, connected_part_id
+"""
 
 from __future__ import annotations
 

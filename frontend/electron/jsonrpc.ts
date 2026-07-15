@@ -1,33 +1,51 @@
 /**
- * Transport-agnostic JSON-RPC 2.0 client for the backend stdio bridge.
+ * ============================================================================
+ * FILE: jsonrpc.ts — JSON-RPC 2.0 client for the Python backend (stdio)
+ * ============================================================================
  *
- * A single instance owns the backend's stdout stream: callers feed it raw chunks
- * via {@link JsonRpcClient.receive} and it routes each NDJSON response to the
- * matching in-flight request by id. This replaces the previous design where each
- * request attached its own stdout listener with its own buffer — which duplicated
- * partial-line state and could mis-route responses once two requests overlapped.
+ * The Python backend speaks JSON-RPC over stdin/stdout: one JSON object per line
+ * (NDJSON). This class:
+ *   - Sends requests with incrementing numeric ids
+ *   - Buffers partial stdout chunks until full lines arrive
+ *   - Routes each response to the correct in-flight Promise by id
+ *   - Handles timeouts and backend process death
+ *
+ * One JsonRpcClient instance owns the entire stdout stream (main.ts wires it).
+ * ============================================================================
  */
 
+/** Internal bookkeeping for a request waiting for a matching response line. */
 interface PendingRequest {
   resolve: (value: unknown) => void;
   reject: (error: Error) => void;
   timer: ReturnType<typeof setTimeout> | null;
 }
 
-/** An Error augmented with the JSON-RPC error `code`/`data` for the renderer. */
+/**
+ * RpcError — normal JavaScript Error plus optional JSON-RPC code and data payload.
+ * The renderer uses data for user-friendly error messages.
+ */
 export type RpcError = Error & { code?: number; data?: unknown };
 
+/** Constructor options for JsonRpcClient. */
 export interface JsonRpcClientOptions {
-  /** Write a single framed request line (already newline-terminated) to the backend. */
+  /** Called to write one newline-terminated request line to backend stdin. */
   send: (line: string) => void;
-  /** Per-request timeout in ms; 0 disables timeouts. Defaults to 60000. */
+  /** Per-request timeout in milliseconds; 0 disables timeouts. Default 60000. */
   defaultTimeoutMs?: number;
 }
 
+/**
+ * JsonRpcClient — transport-agnostic JSON-RPC client (stdio in production).
+ */
 export class JsonRpcClient {
+  // Incomplete line left over from the last stdout chunk.
   private buffer = "";
+  // Monotonically increasing request id (JSON-RPC requires matching id in response).
   private nextId = 0;
+  // Map from request id → Promise settle functions.
   private readonly pending = new Map<number, PendingRequest>();
+  // After handleClose(), no new requests succeed.
   private closed = false;
   private closedError: Error | null = null;
   private readonly send: (line: string) => void;
@@ -44,8 +62,9 @@ export class JsonRpcClient {
   }
 
   /**
-   * Send a request and resolve with its `result`, or reject with an {@link RpcError}
-   * (on a JSON-RPC error), a timeout error, or the close error if the backend is gone.
+   * request — send a JSON-RPC call and return a Promise for its result.
+   *
+   * Rejects on JSON-RPC error object, timeout, send failure, or if backend closed.
    */
   request(method: string, params: unknown = {}, timeoutMs?: number): Promise<unknown> {
     if (this.closed) {
@@ -76,7 +95,10 @@ export class JsonRpcClient {
     });
   }
 
-  /** Feed raw stdout bytes/text; complete NDJSON lines are parsed and dispatched. */
+  /**
+   * receive — feed raw stdout bytes/text from the backend child process.
+   * Complete NDJSON lines are parsed and dispatched to pending requests.
+   */
   receive(chunk: string | Buffer): void {
     this.buffer += typeof chunk === "string" ? chunk : chunk.toString();
     const lines = this.buffer.split("\n");
@@ -89,20 +111,27 @@ export class JsonRpcClient {
         continue;
       }
 
-      let message: { id?: unknown; result?: unknown; error?: { code?: number; message?: string; data?: unknown } };
+      let message: {
+        id?: unknown;
+        result?: unknown;
+        error?: { code?: number; message?: string; data?: unknown };
+      };
       try {
         message = JSON.parse(trimmed);
       } catch {
-        continue; // Ignore non-JSON noise (e.g. stray prints) until a full message arrives.
+        // Ignore non-JSON noise (e.g. stray prints) until a full message arrives.
+        continue;
       }
 
       if (typeof message.id !== "number") {
-        continue; // Notifications / responses without a numeric id we issued.
+        // Notifications / responses without a numeric id we issued.
+        continue;
       }
 
       const pending = this.pending.get(message.id);
       if (!pending) {
-        continue; // Late response to a timed-out/unknown request.
+        // Late response to a timed-out or unknown request.
+        continue;
       }
       this.clearPending(message.id);
 
@@ -117,7 +146,7 @@ export class JsonRpcClient {
     }
   }
 
-  /** Mark the backend gone and reject every in-flight request. */
+  /** handleClose — backend process exited; reject every in-flight request. */
   handleClose(error?: Error): void {
     this.closed = true;
     this.closedError = error ?? new Error("Backend process exited");
@@ -130,13 +159,14 @@ export class JsonRpcClient {
     this.pending.clear();
   }
 
-  /** Re-arm the client to serve a freshly respawned backend process. */
+  /** reset — clear closed state when main process spawns a fresh backend child. */
   reset(): void {
     this.closed = false;
     this.closedError = null;
     this.buffer = "";
   }
 
+  /** clearPending — remove one id from the pending map and clear its timeout. */
   private clearPending(id: number): void {
     const pending = this.pending.get(id);
     if (pending?.timer) {

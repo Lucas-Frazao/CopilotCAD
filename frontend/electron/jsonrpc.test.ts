@@ -1,13 +1,26 @@
+/**
+ * ============================================================================
+ * FILE: jsonrpc.test.ts — Unit tests for JsonRpcClient routing and edge cases
+ * ============================================================================
+ *
+ * Tests run in Vitest without a real Python process. A fake `send` captures
+ * outgoing requests; tests call `receive` with synthetic stdout lines to simulate
+ * the backend. Covers concurrent ids, chunked lines, errors, close, and timeout.
+ * ============================================================================
+ */
+
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { JsonRpcClient } from "./jsonrpc";
 
+/** Shape of a parsed outbound JSON-RPC request line. */
 interface SentRequest {
   id: number;
   method: string;
   params: unknown;
 }
 
+/** Build a client whose send pushes parsed requests into `sent` for assertions. */
 function makeClient() {
   const sent: SentRequest[] = [];
   const client = new JsonRpcClient({
@@ -17,6 +30,7 @@ function makeClient() {
   return { client, sent };
 }
 
+/** Simulate one line of backend stdout with a successful result. */
 function respond(client: JsonRpcClient, id: number, result: unknown): void {
   client.receive(JSON.stringify({ jsonrpc: "2.0", id, result }) + "\n");
 }

@@ -1,4 +1,21 @@
+/**
+ * ============================================================================
+ * FILE: main.ts — Electron main process entry (window + Python backend)
+ * ============================================================================
+ *
+ * This is the "desktop app brain" that:
+ *   1. Spawns the Python JSON-RPC backend as a child process
+ *   2. Routes IPC from the React UI to JSON-RPC on stdin/stdout
+ *   3. Creates the BrowserWindow with secure webPreferences
+ *   4. Restarts the backend on crash (bounded retries)
+ *
+ * The renderer never talks to Python directly — only through ipcMain handlers here.
+ * ============================================================================
+ */
+
+// app: Electron application lifecycle. BrowserWindow: native window. ipcMain: IPC server.
 import { app, BrowserWindow, ipcMain } from "electron";
+// spawn: start child process. ChildProcessWithoutNullStreams: typed stdin/stdout/stderr pipes.
 import { spawn, ChildProcessWithoutNullStreams } from "child_process";
 import * as fs from "fs";
 import * as path from "path";
@@ -8,14 +25,18 @@ import { JsonRpcClient } from "./jsonrpc";
 /** Health of the backend child process, surfaced to the renderer. */
 type BackendStatus = "starting" | "ready" | "down";
 
-/** Discriminated result returned to the renderer so structured error data
- *  (code/data) survives the IPC boundary without string-encoding hacks. */
+/**
+ * RpcEnvelope — discriminated union returned to renderer over IPC.
+ * Structured error code/data survive the boundary without string-encoding hacks.
+ */
 type RpcEnvelope =
   | { ok: true; value: unknown }
   | { ok: false; error: { message: string; code?: number; data?: unknown } };
 
+/** Max automatic backend respawns before giving up (while app stays open). */
 const MAX_RESTART_ATTEMPTS = 5;
 
+// Module-level singletons for the one main window and one backend child.
 let mainWindow: BrowserWindow | null = null;
 let backendProcess: ChildProcessWithoutNullStreams | null = null;
 let rpcClient: JsonRpcClient | null = null;
@@ -23,10 +44,15 @@ let backendStatus: BackendStatus = "starting";
 let restartAttempts = 0;
 let isQuitting = false;
 
+/** Repo root: two levels up from compiled electron output (frontend/dist-electron). */
 function getProjectRoot(): string {
   return path.resolve(__dirname, "..", "..");
 }
 
+/**
+ * getWorkspacePath — folder containing copilotcad.json and parts/.
+ * Override with COPILOTCAD_WORKSPACE env var for development.
+ */
 function getWorkspacePath(): string {
   const fromEnv = process.env.COPILOTCAD_WORKSPACE;
   if (fromEnv) {
@@ -35,6 +61,10 @@ function getWorkspacePath(): string {
   return path.join(getProjectRoot(), "example_project");
 }
 
+/**
+ * getPythonExecutable — resolve venv python or fall back to system python.
+ * COPILOTCAD_PYTHON env can point to a specific interpreter.
+ */
 function getPythonExecutable(backendDir: string): string {
   const fromEnv = process.env.COPILOTCAD_PYTHON;
   if (fromEnv && fs.existsSync(fromEnv)) {
@@ -53,7 +83,7 @@ function getPythonExecutable(backendDir: string): string {
   return process.platform === "win32" ? "python" : "python3";
 }
 
-/** Push the current backend status to the renderer so it can show/clear a banner. */
+/** broadcastStatus — push current backendStatus to renderer via preload channel. */
 function broadcastStatus(): void {
   mainWindow?.webContents.send("copilotcad:backend-status", backendStatus);
 }
@@ -64,9 +94,8 @@ function setStatus(status: BackendStatus): void {
 }
 
 /**
- * Spawn the Python backend and wire a single JsonRpcClient to its stdio. Registers
- * exit/error handlers so a crash is detected (rather than hanging every request for
- * the full timeout) and, while the app is running, triggers a bounded auto-restart.
+ * spawnBackend — start Python main.py and wire JsonRpcClient to its stdio.
+ * Registers exit/error handlers for crash detection and bounded auto-restart.
  */
 function spawnBackend(): void {
   const projectRoot = getProjectRoot();
@@ -86,6 +115,7 @@ function spawnBackend(): void {
   });
   rpcClient = client;
 
+  // Every stdout chunk goes to the single client's line buffer.
   proc.stdout.on("data", (chunk: Buffer) => client.receive(chunk));
   proc.stderr.on("data", (data: Buffer) => {
     console.error("[backend stderr]", data.toString());
@@ -99,15 +129,14 @@ function spawnBackend(): void {
     }
   };
 
-  // 'error' fires when spawn itself fails (e.g. python not found) — without this
-  // handler Node would throw and crash the main process.
+  // 'error' fires when spawn itself fails (e.g. python not found).
   proc.on("error", (err) => onGone(err instanceof Error ? err : new Error(String(err))));
   proc.on("exit", (code, signal) =>
     onGone(new Error(`Backend exited (code=${code ?? "null"}, signal=${signal ?? "null"})`)),
   );
 }
 
-/** Restart the backend a bounded number of times unless the app is shutting down. */
+/** maybeRestart — respawn backend unless shutting down or max attempts reached. */
 function maybeRestart(): void {
   if (isQuitting || restartAttempts >= MAX_RESTART_ATTEMPTS) {
     return;
@@ -117,13 +146,14 @@ function maybeRestart(): void {
   spawnBackend();
 }
 
+/** pingBackend — verify JSON-RPC path works; sets status ready on success. */
 async function pingBackend(): Promise<void> {
   if (!rpcClient) {
     return;
   }
   try {
     const result = await rpcClient.request("ping");
-    restartAttempts = 0; // A successful ping means the backend is healthy again.
+    restartAttempts = 0;
     setStatus("ready");
     console.log(`IPC ping → pong: ${JSON.stringify(result)}`);
   } catch (err) {
@@ -132,6 +162,7 @@ async function pingBackend(): Promise<void> {
   }
 }
 
+/** createWindow — open the main BrowserWindow loading Vite dev URL or built HTML. */
 function createWindow(): void {
   mainWindow = new BrowserWindow({
     width: 1200,
@@ -145,8 +176,7 @@ function createWindow(): void {
 
   const devServerUrl = process.env.VITE_DEV_SERVER_URL;
 
-  // Lock navigation down: the renderer is an app shell, not a browser. Block any
-  // attempt to navigate away or open new windows (defence against injected links).
+  // Block navigation and new windows — renderer is an app shell, not a browser.
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
   mainWindow.webContents.on("will-navigate", (event, url) => {
     if (url !== devServerUrl) {
@@ -154,7 +184,6 @@ function createWindow(): void {
     }
   });
 
-  // Send the latest status once the renderer has loaded.
   mainWindow.webContents.on("did-finish-load", broadcastStatus);
 
   if (devServerUrl) {
@@ -164,9 +193,14 @@ function createWindow(): void {
   }
 }
 
+// Electron app is ready — register IPC, spawn backend, open window.
 app.whenReady().then(async () => {
   spawnBackend();
 
+  /**
+   * copilotcad:rpc — generic channel: renderer sends method + params,
+   * main forwards to JsonRpcClient and wraps result in RpcEnvelope.
+   */
   ipcMain.handle(
     "copilotcad:rpc",
     async (_event, method: string, params: unknown): Promise<RpcEnvelope> => {

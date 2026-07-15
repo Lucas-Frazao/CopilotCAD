@@ -1,3 +1,12 @@
+/**
+ * PartsPanel.test.tsx — Unit tests for the parts list sidebar
+ *
+ * Covers maturity badges, problem counts, selection callback, active highlight,
+ * and empty-state copy. Parent owns fetching — tests pass static props.
+ *
+ * Feature: F-015
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

@@ -1,3 +1,13 @@
+/**
+ * PartsPanel.tsx — Project parts list with maturity and problem counts
+ *
+ * Shows every part in the workspace. The active part row is highlighted;
+ * clicking a row calls `onSelectPart` so Viewport/History/Explorer follow.
+ *
+ * Feature: F-015
+ */
+
+/** One part row — data comes from backend parts_list RPC. */
 export interface PartListEntry {
   part_id: string;
   name: string;
@@ -11,6 +21,7 @@ export interface PartsPanelProps {
   onSelectPart?: (partId: string) => void;
 }
 
+/** Turn snake_case maturity (in_review) into readable label (in review). */
 function formatMaturity(maturity: string): string {
   return maturity.replace(/_/g, " ");
 }

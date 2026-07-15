@@ -1,8 +1,18 @@
+/**
+ * InterfacesPanel.test.tsx — Unit tests for assembly interface list
+ *
+ * Verifies row content, part selection callback, conflict highlight styling,
+ * and empty state. No IPC — pure props-in, DOM-out component.
+ *
+ * Feature: F-016
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import InterfacesPanel from "./InterfacesPanel";
 
+/** Two interfaces: one open, one linked to mounting_plate. */
 const SAMPLE_INTERFACES = [
   {
     part_id: "mounting_plate",

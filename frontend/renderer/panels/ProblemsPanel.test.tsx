@@ -1,9 +1,19 @@
+/**
+ * ProblemsPanel.test.tsx — Unit tests for the problems/issues panel
+ *
+ * Validates rendering of severity/type/message, sort order (blocking first),
+ * empty state, navigation callback, and reactive updates when props change.
+ *
+ * Feature: F-010
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import ProblemsPanel from "./ProblemsPanel";
 import type { ProblemPayload } from "../ipc/types";
 
+/** Warning + blocking pair — sort test expects blocking first. */
 const SAMPLE_PROBLEMS: ProblemPayload[] = [
   {
     id: "p1",
@@ -61,6 +71,7 @@ describe("ProblemsPanel (F-010)", () => {
     const { rerender } = render(<ProblemsPanel problems={[]} />);
     expect(screen.getByText(/no problems/i)).toBeInTheDocument();
 
+    // Simulates App shell receiving new problems from backend after execute.
     rerender(<ProblemsPanel problems={SAMPLE_PROBLEMS} />);
     expect(screen.queryByText(/no problems/i)).not.toBeInTheDocument();
     expect(screen.getByText(/Blocking question/i)).toBeInTheDocument();

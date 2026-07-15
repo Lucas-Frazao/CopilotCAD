@@ -1,3 +1,16 @@
+/**
+ * ViewportPanel.tsx — 3D geometry preview (part or assembly mode)
+ *
+ * Part mode: renders a single PartMeshPayload inside a React Three Fiber Canvas.
+ * Assembly mode (F-020): renders multiple instanced meshes plus a sidebar tree.
+ *
+ * Face picking calls `onFaceSelect` so chat can reference "this face" context.
+ * Tests mock @react-three/fiber Canvas — production uses real WebGL rendering.
+ *
+ * Features: F-011 (part viewport), F-020 (assembly viewport)
+ */
+
+// React Three Fiber — React renderer for Three.js; Canvas is the WebGL root.
 import { Canvas } from "@react-three/fiber";
 
 import type { AssemblyInstanceMesh, AssemblyMeshPayload, PartMeshPayload } from "../ipc/mesh-types";
@@ -11,6 +24,10 @@ export interface ViewportPanelProps {
   onSelectInstance?: (instance: AssemblyInstanceMesh) => void;
 }
 
+/**
+ * Lightweight stand-in for the real Three.js mesh scene.
+ * Exposes a "Pick surface" button so tests can simulate face selection.
+ */
 function PartMeshScene({
   mesh,
   onFaceSelect,
@@ -34,6 +51,7 @@ function PartMeshScene({
   );
 }
 
+/** Renders one placeholder div per assembly instance (real app would draw GL meshes). */
 function AssemblyMeshScene({ assemblyMesh }: { assemblyMesh: AssemblyMeshPayload }) {
   return (
     <div data-testid="assembly-mesh-scene">
@@ -49,12 +67,13 @@ export default function ViewportPanel({
   assemblyMesh = null,
   mode = "part",
   onFaceSelect,
-  selectedFaceId: _selectedFaceId = null,
+  selectedFaceId: _selectedFaceId = null, // reserved for future highlight styling
   onSelectInstance,
 }: ViewportPanelProps) {
   const isAssembly = mode === "assembly" && assemblyMesh != null && assemblyMesh.meshes.length > 0;
   const hasPartMesh = mesh != null;
 
+  // Empty state — no part mesh and no assembly instances to show.
   if (!isAssembly && !hasPartMesh) {
     return (
       <div className="viewport-panel">
@@ -64,6 +83,7 @@ export default function ViewportPanel({
     );
   }
 
+  // Assembly layout: 3D canvas + instance tree sidebar.
   if (isAssembly) {
     return (
       <div className="viewport-panel">
@@ -93,6 +113,7 @@ export default function ViewportPanel({
     );
   }
 
+  // Single-part layout: canvas only.
   return (
     <div className="viewport-panel">
       <div className="panel-placeholder">Viewport</div>

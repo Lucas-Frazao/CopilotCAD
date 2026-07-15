@@ -1,3 +1,10 @@
+/**
+ * chat-utils.test.ts — Unit tests for chat helper functions
+ *
+ * Covers diff summary text, slash command filtering, message classification
+ * (slash-only vs conversational vs modeling), and compile error formatting.
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { buildDiffSummaryText, filterSlashCommands, isSlashOnlyMessage, isConversationalMessage, formatCompileError } from "../../renderer/chat/chat-utils";

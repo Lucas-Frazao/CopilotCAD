@@ -1,3 +1,12 @@
+/**
+ * ViewportPanel-assembly-f020.test.tsx — Assembly viewport tests
+ *
+ * Separate file for F-020 assembly mode: multi-instance mesh scene, assembly
+ * tree sidebar, instance selection. Canvas is mocked like part viewport tests.
+ *
+ * Feature: F-020
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -10,6 +19,7 @@ vi.mock("@react-three/fiber", () => ({
   ),
 }));
 
+/** Two instances: plate at origin, bracket offset on X. */
 const ASSEMBLY_MESH: AssemblyMeshPayload = {
   meshes: [
     {

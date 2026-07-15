@@ -1,11 +1,26 @@
+/**
+ * ExplorerPanel.tsx — Project file tree browser
+ *
+ * Shows the on-disk workspace as a collapsible tree (parts/, exports/, docs/, …).
+ * Clicking a file fetches its text via the backend and shows a read-only preview.
+ * The backend owns all filesystem access — this panel never writes files directly.
+ *
+ * `refreshToken` is an integer the parent bumps after chat execute so the tree
+ * refetches without remounting the whole panel.
+ */
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
+// Recursive tree UI — folders expand/collapse, files are selectable rows.
 import FileTree from "../components/FileTree";
+// IPC: listWorkspaceTree returns nested nodes; readWorkspaceFile returns file text.
 import { listWorkspaceTree, readWorkspaceFile } from "../ipc/bridge";
 import type { WorkspaceTreeNode } from "../ipc/types";
 
+/** Props supplied by the App shell — absolute path to the open project folder. */
 export interface ExplorerPanelProps {
   workspacePath: string;
+  /** Increment to trigger a tree reload (e.g. after execute creates new files). */
   refreshToken?: number;
 }
 
@@ -19,10 +34,15 @@ export default function ExplorerPanel({
   const [previewText, setPreviewText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  // Monotonic token so an earlier, slower file read cannot overwrite the preview
-  // of a file selected later (out-of-order resolution on rapid clicks).
+
+  /**
+   * Race guard for file preview reads.
+   * If the user clicks file A then quickly clicks file B, A's slow response
+   * must not overwrite B's preview — we compare requestId to the latest ref.
+   */
   const previewRequestRef = useRef(0);
 
+  /** Fetch the full workspace tree from the Python backend. */
   const loadTree = useCallback(async () => {
     if (!workspacePath) {
       return;
@@ -42,10 +62,12 @@ export default function ExplorerPanel({
     }
   }, [workspacePath]);
 
+  // Load on mount and whenever workspace path or refreshToken changes.
   useEffect(() => {
     void loadTree();
   }, [loadTree, refreshToken]);
 
+  /** Toggle a folder open/closed by adding or removing its path from the Set. */
   const handleToggleExpand = (path: string) => {
     setExpandedPaths((prev) => {
       const next = new Set(prev);
@@ -58,9 +80,11 @@ export default function ExplorerPanel({
     });
   };
 
+  /** Select a tree row; files trigger an async preview fetch. */
   const handleSelect = async (path: string, type: "file" | "dir") => {
     setSelectedPath(path);
 
+    // Directories only update selection — no preview pane.
     if (type !== "file" || !workspacePath) {
       setPreviewText(null);
       return;
@@ -69,9 +93,8 @@ export default function ExplorerPanel({
     const requestId = ++previewRequestRef.current;
     try {
       const result = await readWorkspaceFile(workspacePath, path);
-      // Drop the result if a newer selection has superseded this request.
       if (requestId !== previewRequestRef.current) {
-        return;
+        return; // stale response — user already selected another file
       }
       setPreviewText(result.contents);
       setError(null);

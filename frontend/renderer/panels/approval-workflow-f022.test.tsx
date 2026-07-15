@@ -1,3 +1,12 @@
+/**
+ * approval-workflow-f022.test.tsx — Approval gate UI in chat messages
+ *
+ * Tests ChatMessage (not ChatPanel) for F-022 risk approval flow: destructive
+ * intents show Approve/Reject; callbacks receive pendingId without executing.
+ *
+ * Feature: F-022
+ */
+
 import { cleanup, render, screen, fireEvent } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -9,6 +18,7 @@ describe("Approval workflow chat UI (F-022)", () => {
     cleanup();
   });
 
+  /** Representative approval_required bubble — delete part intent. */
   const approvalMessage: ChatMessageData = {
     id: "approval-1",
     role: "assistant",

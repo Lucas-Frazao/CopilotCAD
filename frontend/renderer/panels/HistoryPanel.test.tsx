@@ -1,8 +1,18 @@
+/**
+ * HistoryPanel.test.tsx — Unit tests for Actions/Features history tabs
+ *
+ * HistoryPanel is mostly presentational — parent passes filtered entries.
+ * Tests verify tab UI, timestamps, chat deep-link button, and part scoping.
+ *
+ * Feature: F-017
+ */
+
 import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import HistoryPanel from "./HistoryPanel";
 
+/** Sample action log row with chat message link. */
 const ACTION_ENTRIES = [
   {
     id: "h1",
@@ -14,6 +24,7 @@ const ACTION_ENTRIES = [
   },
 ];
 
+/** Sample modeling steps for Features tab. */
 const FEATURE_ENTRIES = [
   { id: "s1", op: "sketch_rectangle", label: "Sketch rectangle" },
   { id: "s2", op: "extrude", label: "Extrude 6 mm" },
@@ -86,6 +97,7 @@ describe("HistoryPanel (F-017)", () => {
     );
     expect(screen.getByText(/Added corner holes/i)).toBeInTheDocument();
 
+    // Parent passes empty actions when switching to a different part.
     rerender(<HistoryPanel partId="bracket" actions={[]} features={[]} />);
     expect(screen.queryByText(/Added corner holes/i)).not.toBeInTheDocument();
   });

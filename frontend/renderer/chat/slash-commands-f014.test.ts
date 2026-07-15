@@ -1,8 +1,20 @@
+/**
+ * slash-commands-f014.test.ts — Slash command registry contract
+ *
+ * Documents the 12 MVP slash commands and which project artifact each command
+ * should touch. Handler integration tests use EXPECTED_ARTIFACTS as a checklist.
+ *
+ * Feature: F-014
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { SLASH_COMMANDS } from "../../renderer/chat/chat-utils";
 
-/** F-014: each MVP slash command must be handled — not return stub message. */
+/**
+ * Map each slash command to the file path pattern it should read or write.
+ * Used by backend/frontend handler tests — not enforced at runtime here.
+ */
 const EXPECTED_ARTIFACTS: Record<string, string> = {
   "/vision": "docs/product_vision.md",
   "/constitution": "docs/constitution.md",

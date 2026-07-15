@@ -37,10 +37,11 @@
     "frontend/renderer/components/ChatMessage.tsx",
     "frontend/renderer/components/ProblemItem.tsx",
     "frontend/renderer/components/FileTree.tsx",
-    "frontend/renderer/components/SlashCommandPicker.tsx"
+    "frontend/renderer/components/SlashCommandPicker.tsx",
+    "frontend/renderer/components/FileTree.test.tsx",
+    "frontend/renderer/pdd/classifier.test.ts"
   ],
   "pending": [
-    "frontend/renderer/components/FileTree.test.tsx",
     "frontend/renderer/panels/ChatPanel.tsx",
     "frontend/renderer/panels/ExplorerPanel.tsx",
     "frontend/renderer/panels/ExplorerPanel.test.tsx",
@@ -58,9 +59,6 @@
     "frontend/renderer/panels/approval-workflow-f022.test.tsx",
     "frontend/renderer/chat/slash-commands-f014.test.ts",
     "frontend/renderer/chat/chat-utils.test.ts",
-    "frontend/renderer/capabilities/workspaceCapabilities.test.ts",
-    "frontend/renderer/errors/formatUserError.test.ts",
-    "frontend/renderer/pdd/classifier.test.ts",
     "frontend/renderer/integration/golden-path-f012.test.ts",
     "backend/main.py",
     "backend/errors/catalog.py",

@@ -1,9 +1,20 @@
+/**
+ * ============================================================================
+ * FILE: FileTree.test.tsx — Unit tests for workspace file tree UI
+ * ============================================================================
+ *
+ * Verifies rendering, expand toggles, nested visibility when expandedPaths
+ * contains parent paths, and file selection callbacks.
+ * ============================================================================
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import FileTree from "./FileTree";
 import type { WorkspaceTreeNode } from "../ipc/types";
 
+/** Nested sample tree matching real workspace layout (parts/.../spec.yaml). */
 const SAMPLE_TREE: WorkspaceTreeNode[] = [
   {
     name: "parts",

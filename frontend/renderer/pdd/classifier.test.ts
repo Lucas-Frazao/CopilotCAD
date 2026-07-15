@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * FILE: classifier.test.ts — Tests for client-side PDD complexity heuristics
+ * ============================================================================
+ *
+ * Ensures simple dimensional plate prompts stay "simple" while assembly-style
+ * language triggers suggest_pdd, and that quick-reply actions are offered.
+ * Feature F-013.
+ * ============================================================================
+ */
+
 import { describe, expect, it } from "vitest";
 
 import { classifyRequestComplexity, buildPddSuggestionActions } from "../../renderer/pdd/classifier";

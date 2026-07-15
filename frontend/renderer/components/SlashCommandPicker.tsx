@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * FILE: SlashCommandPicker.tsx — Autocomplete dropdown for /commands in chat
+ * ============================================================================
+ *
+ * When the user types "/" in the chat input, ChatPanel shows this floating list
+ * of matching commands from SLASH_COMMANDS. selectedIndex tracks keyboard highlight.
+ * onMouseDown + preventDefault keeps focus in the text field when clicking a row.
+ * ============================================================================
+ */
+
 import { filterSlashCommands } from "../chat/chat-utils";
 
 interface SlashCommandPickerProps {
@@ -6,6 +17,9 @@ interface SlashCommandPickerProps {
   onSelect: (command: string) => void;
 }
 
+/**
+ * SlashCommandPicker — returns null when input does not match any command prefix.
+ */
 export default function SlashCommandPicker({
   input,
   selectedIndex,

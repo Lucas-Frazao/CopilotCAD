@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * FILE: FileTree.tsx — Recursive workspace file/folder tree (F-009)
+ * ============================================================================
+ *
+ * Renders WorkspaceTreeNode data from list_workspace_tree RPC. Supports
+ * expand/collapse for directories and selection highlight for the active path.
+ * Used by ExplorerPanel on the left side of the app.
+ * ============================================================================
+ */
+
 import type { WorkspaceTreeNode } from "../ipc/types";
 
 export interface FileTreeProps {
@@ -8,6 +19,9 @@ export interface FileTreeProps {
   onToggleExpand: (path: string) => void;
 }
 
+/**
+ * FileTreeNode — recursive inner component; depth controls left padding indent.
+ */
 function FileTreeNode({
   node,
   selectedPath,
@@ -69,6 +83,9 @@ function FileTreeNode({
   );
 }
 
+/**
+ * FileTree — maps top-level nodes to FileTreeNode at depth 0.
+ */
 export default function FileTree({
   nodes,
   selectedPath,

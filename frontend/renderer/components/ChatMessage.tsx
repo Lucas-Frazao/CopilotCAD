@@ -1,8 +1,20 @@
+/**
+ * ============================================================================
+ * FILE: ChatMessage.tsx — Renders one row in the chat transcript
+ * ============================================================================
+ *
+ * Depending on message.kind, shows plain text, compile results (summary,
+ * assumptions, diff, inline problems), blocking questions, or approval UI.
+ * Parent ChatPanel owns question state and approval callbacks.
+ * ============================================================================
+ */
+
 import type { ChatMessageData, QuestionLocalState } from "../chat/chat-types";
 import type { IRQuestionPayload } from "../ipc/types";
 import AssumptionTag from "./AssumptionTag";
 import DiffSummary from "./DiffSummary";
 
+/** Props from ChatPanel: message data plus optional interaction handlers. */
 interface ChatMessageProps {
   message: ChatMessageData;
   questionStates?: Record<string, QuestionLocalState>;
@@ -12,6 +24,9 @@ interface ChatMessageProps {
   onReject?: (pendingId: string) => void;
 }
 
+/**
+ * BlockingQuestionRow — inline form when the model asks a required question.
+ */
 function BlockingQuestionRow({
   question,
   state,
@@ -50,6 +65,9 @@ function BlockingQuestionRow({
   );
 }
 
+/**
+ * ChatMessage — main export; branches on kind and role for layout/CSS.
+ */
 export default function ChatMessage({
   message,
   questionStates = {},
@@ -62,6 +80,7 @@ export default function ChatMessage({
   const blockingQuestions =
     message.intent?.questions?.filter((q) => q.blocking && q.status === "open") ?? [];
 
+  // Risky operations (F-022): show Approve / Reject buttons.
   if (message.kind === "approval_required") {
     return (
       <div className={`chat-message chat-message-${message.role} chat-message-approval`}>

@@ -1,3 +1,14 @@
+/**
+ * ============================================================================
+ * FILE: ProblemItem.tsx — One row in the Problems panel list
+ * ============================================================================
+ *
+ * Problems are warnings/errors from validation, assumptions, or geometry.
+ * This component shows type, severity, message, and optional suggested steps.
+ * Click/keyboard handlers are optional for future navigation to the related part.
+ * ============================================================================
+ */
+
 import type { ProblemPayload } from "../ipc/types";
 
 export interface ProblemItemProps {
@@ -5,6 +16,9 @@ export interface ProblemItemProps {
   onClick?: (problem: ProblemPayload) => void;
 }
 
+/**
+ * ProblemItem — accessible list item (tabIndex when clickable).
+ */
 export default function ProblemItem({ problem, onClick }: ProblemItemProps) {
   const steps = problem.suggested_next_steps ?? [];
 

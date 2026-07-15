@@ -33,14 +33,14 @@
     "frontend/renderer/app.tsx",
     "frontend/renderer/components/AssumptionTag.tsx",
     "frontend/renderer/components/AssumptionTag.test.tsx",
-    "frontend/renderer/components/DiffSummary.tsx"
+    "frontend/renderer/components/DiffSummary.tsx",
+    "frontend/renderer/components/ChatMessage.tsx",
+    "frontend/renderer/components/ProblemItem.tsx",
+    "frontend/renderer/components/FileTree.tsx",
+    "frontend/renderer/components/SlashCommandPicker.tsx"
   ],
   "pending": [
-    "frontend/renderer/components/ChatMessage.tsx",
-    "frontend/renderer/components/FileTree.tsx",
     "frontend/renderer/components/FileTree.test.tsx",
-    "frontend/renderer/components/ProblemItem.tsx",
-    "frontend/renderer/components/SlashCommandPicker.tsx",
     "frontend/renderer/panels/ChatPanel.tsx",
     "frontend/renderer/panels/ExplorerPanel.tsx",
     "frontend/renderer/panels/ExplorerPanel.test.tsx",

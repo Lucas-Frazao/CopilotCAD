@@ -29,14 +29,14 @@
     "frontend/electron/preload.ts",
     "frontend/electron/jsonrpc.ts",
     "frontend/electron/jsonrpc.test.ts",
-    "frontend/electron/main.ts"
-  ],
-  "pending": [
+    "frontend/electron/main.ts",
     "frontend/renderer/app.tsx",
     "frontend/renderer/components/AssumptionTag.tsx",
     "frontend/renderer/components/AssumptionTag.test.tsx",
+    "frontend/renderer/components/DiffSummary.tsx"
+  ],
+  "pending": [
     "frontend/renderer/components/ChatMessage.tsx",
-    "frontend/renderer/components/DiffSummary.tsx",
     "frontend/renderer/components/FileTree.tsx",
     "frontend/renderer/components/FileTree.test.tsx",
     "frontend/renderer/components/ProblemItem.tsx",

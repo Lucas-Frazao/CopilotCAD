@@ -1,3 +1,13 @@
+/**
+ * ============================================================================
+ * FILE: AssumptionTag.test.tsx — Tests for assumption confirm/reject/edit (F-023)
+ * ============================================================================
+ *
+ * Uses @testing-library/react to render the component in jsdom and simulate
+ * button clicks. The IPC bridge is mocked so no Electron window is required.
+ * ============================================================================
+ */
+
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +18,7 @@ vi.mock("../ipc/bridge", () => ({
   updateAssumption: vi.fn(),
 }));
 
+/** Shared fixture: a proposed high-importance assumption. */
 const PROPOSED_ASSUMPTION = {
   id: "a1",
   text: "Plate thickness is 6 mm.",

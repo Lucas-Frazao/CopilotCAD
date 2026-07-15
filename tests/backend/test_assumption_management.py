@@ -1,4 +1,16 @@
-"""Spec compliance tests for F-023 — Assumption management."""
+"""
+test_assumption_management.py — Assumption management tests (F-023)
+===================================================================
+
+Assumptions are AI guesses the user must confirm, edit, or reject before
+modeling proceeds safely. F-023 defines update_assumption — a function and RPC
+that mutates assumptions.yaml and clears related problems when confirmed.
+
+Beginner concepts:
+  - Assumption: {id, text, scope, source, importance, status} in assumptions.yaml.
+  - status: proposed → confirmed | rejected | edited.
+  - unresolved_assumption problem: cleared when status becomes confirmed.
+"""
 
 from __future__ import annotations
 
@@ -15,6 +27,7 @@ from ir.validator import validate_intent_ir
 
 
 def _assumptions_module():
+    """Import project.assumptions or fail with a clear F-023 pending message."""
     try:
         return importlib.import_module("project.assumptions")
     except ImportError as exc:
@@ -22,6 +35,7 @@ def _assumptions_module():
 
 
 def test_update_assumption_rpc_registered(workspace):
+    """update_assumption must be registered as a JSON-RPC method."""
     from project.part_folder import create_part_folder
 
     create_part_folder(workspace, "mounting_plate")
@@ -37,6 +51,9 @@ def test_update_assumption_rpc_registered(workspace):
 
 
 def test_confirming_assumption_updates_yaml(workspace):
+    """
+    Calling update_assumption with status='confirmed' must persist to assumptions.yaml.
+    """
     from project.part_folder import create_part_folder, ASSUMPTIONS_FILENAME
 
     create_part_folder(workspace, "mounting_plate")
@@ -69,6 +86,10 @@ def test_confirming_assumption_updates_yaml(workspace):
 
 
 def test_confirm_clears_unresolved_assumption_problem(workspace):
+    """
+    After confirming assumption a1, evaluate_problems must not report
+    unresolved_assumption for that id.
+    """
     mod = _assumptions_module()
     from project.part_folder import create_part_folder
 
@@ -106,6 +127,7 @@ def test_confirm_clears_unresolved_assumption_problem(workspace):
 
 
 def test_edit_assumption_text_updates_yaml(workspace):
+    """update_assumption with new text must persist the edited text to YAML."""
     mod = _assumptions_module()
     from project.part_folder import create_part_folder, ASSUMPTIONS_FILENAME
 
@@ -137,6 +159,7 @@ def test_edit_assumption_text_updates_yaml(workspace):
 
 
 def test_update_assumption_jsonrpc(workspace):
+    """update_assumption RPC should succeed for a valid confirm request."""
     from project.part_folder import create_part_folder
 
     create_part_folder(workspace, "mounting_plate")
@@ -167,6 +190,7 @@ def test_update_assumption_jsonrpc(workspace):
 
 
 def test_invalid_status_rejected(workspace):
+    """An invalid status value like 'maybe' must raise an exception."""
     mod = _assumptions_module()
     from project.part_folder import create_part_folder
 

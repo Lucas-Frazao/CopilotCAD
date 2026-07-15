@@ -1,4 +1,18 @@
-"""Tests for Intent IR sanitization before validation."""
+"""
+test_ir_sanitizer.py — Intent IR sanitization tests
+===================================================
+
+Before validation, the sanitizer normalizes LLM output: fixes invalid enum
+values, renames alternate field names, and coerces loosely typed structures
+into the shape the validator expects.
+
+These tests verify the sanitizer repairs common LLM mistakes without rejecting
+the entire IR.
+
+Beginner concepts:
+  - Sanitizer: a pre-validation cleanup pass on raw LLM JSON.
+  - validate_intent_ir: strict schema check after sanitization.
+"""
 
 from ir.sanitizer import sanitize_intent_ir_data
 from ir.validator import validate_intent_ir
@@ -6,6 +20,9 @@ from test_intent_ir_validation import mounting_plate_ir
 
 
 def test_sanitize_fixes_invalid_assumption_status():
+    """
+    LLMs sometimes emit status='inferred'; sanitizer should map it to 'proposed'.
+    """
     data = mounting_plate_ir()
     data["assumptions"].append(
         {
@@ -14,7 +31,7 @@ def test_sanitize_fixes_invalid_assumption_status():
             "scope": "part",
             "source": "ai",
             "importance": "medium",
-            "status": "inferred",
+            "status": "inferred",  # Not a valid enum value
         }
     )
     sanitized = sanitize_intent_ir_data(data)
@@ -23,6 +40,10 @@ def test_sanitize_fixes_invalid_assumption_status():
 
 
 def test_sanitize_moves_constraints_holes_into_dimensions():
+    """
+    LLMs may put hole params under constraints.holes; sanitizer flattens them
+    into constraints.dimensions with hole_diameter and hole_offset keys.
+    """
     data = mounting_plate_ir()
     data["constraints"] = {
         "dimensions": {"length_mm": 100, "width_mm": 50, "thickness_mm": 6},
@@ -36,6 +57,7 @@ def test_sanitize_moves_constraints_holes_into_dimensions():
 
 
 def test_sanitize_wraps_string_tolerance():
+    """A plain string tolerance becomes {"standard": "..."} object form."""
     data = mounting_plate_ir()
     data["constraints"] = {
         "dimensions": {"length_mm": 100},
@@ -48,6 +70,10 @@ def test_sanitize_wraps_string_tolerance():
 
 
 def test_sanitize_normalizes_llm_sketch_and_extrude_params():
+    """
+    LLMs use alternate param names (width_mm, depth_mm, diameter_mm).
+    Sanitizer maps them to canonical names (length, width, distance, offset).
+    """
     data = mounting_plate_ir()
     data["steps"] = [
         {
@@ -79,6 +105,7 @@ def test_sanitize_normalizes_llm_sketch_and_extrude_params():
 
 
 def test_sanitize_links_list_to_object():
+    """LLMs sometimes emit links as []; sanitizer converts to proper object form."""
     data = mounting_plate_ir()
     data["target"] = {}
     data["links"] = []

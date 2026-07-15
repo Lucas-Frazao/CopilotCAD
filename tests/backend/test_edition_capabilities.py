@@ -1,4 +1,15 @@
-"""Spec compliance tests for F-027 — Edition and capabilities plumbing."""
+"""
+test_edition_capabilities.py — Edition and capabilities plumbing tests (F-027)
+==============================================================================
+
+F-027 wires edition (community vs learning) and capability limits into the
+workspace manifest and runtime checks. Soft limits warn but do not block in MVP.
+
+Beginner concepts:
+  - edition: "community" (default) or "learning" — controls feature access.
+  - capabilities: soft limits like max_assembly_parts stored in the manifest.
+  - check_capability: returns "warn" when a soft limit is exceeded.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +24,7 @@ from schemas.workspace_manifest import WorkspaceManifest, default_capabilities
 
 
 def _capabilities_module():
+    """Import workspace.capabilities if implemented; return None otherwise."""
     try:
         return importlib.import_module("workspace.capabilities")
     except ImportError:
@@ -20,6 +32,10 @@ def _capabilities_module():
 
 
 def test_new_projects_have_edition_and_capabilities(tmp_path):
+    """
+    New workspaces must default to edition='community' with a Capabilities object
+    persisted in copilotcad.json.
+    """
     path = tmp_path / "cap_proj"
     manifest = create_workspace(path, "cap_proj")
     assert manifest.edition == "community"
@@ -31,6 +47,7 @@ def test_new_projects_have_edition_and_capabilities(tmp_path):
 
 
 def test_get_workspace_capabilities_rpc_registered(workspace):
+    """get_workspace_capabilities must be registered as a JSON-RPC method."""
     assert_rpc_method_registered(
         "get_workspace_capabilities",
         {"workspace_path": str(workspace)},
@@ -38,15 +55,22 @@ def test_get_workspace_capabilities_rpc_registered(workspace):
 
 
 def test_capabilities_include_documented_limits(workspace):
+    """
+    get_workspace_capabilities RPC must return max_assembly_parts (or max_parts)
+    and edition='community'.
+    """
     response = call_rpc("get_workspace_capabilities", {"workspace_path": str(workspace)})
     caps = assert_rpc_success(response)
     flat = caps.get("capabilities", caps)
-    # F-027 spec fields; current schema may use max_assembly_parts on Capabilities model.
     assert "max_assembly_parts" in flat or "max_parts" in flat
     assert flat.get("edition") == "community" or caps.get("edition") == "community"
 
 
 def test_legacy_manifest_without_capabilities_gets_defaults(tmp_path):
+    """
+    Loading an old manifest without a capabilities block must backfill defaults
+    instead of crashing.
+    """
     path = tmp_path / "legacy"
     path.mkdir()
     for d in ("docs", "parts", "assemblies", "exports"):
@@ -61,12 +85,14 @@ def test_legacy_manifest_without_capabilities_gets_defaults(tmp_path):
 
 
 def test_check_capability_logs_warning_only(workspace, caplog):
+    """
+    Exceeding a soft limit must warn (return 'warn') but not raise in MVP.
+    """
     mod = _capabilities_module()
     if mod is None:
         pytest.fail("F-027 requires workspace.capabilities with check_capability helper")
     check = getattr(mod, "check_capability", None)
     assert check is not None
-    # Exceed soft limit — must warn, not raise in MVP
     result = check(
         load_workspace(workspace),
         "max_assembly_parts",
@@ -76,6 +102,9 @@ def test_check_capability_logs_warning_only(workspace, caplog):
 
 
 def test_soft_limit_warning_message(workspace):
+    """
+    format_limit_warning must produce a message mentioning community or limit.
+    """
     mod = _capabilities_module()
     format_warn = getattr(mod, "format_limit_warning", None)
     assert format_warn is not None
@@ -84,5 +113,6 @@ def test_soft_limit_warning_message(workspace):
 
 
 def test_workspace_manifest_schema_accepts_community_edition():
+    """WorkspaceManifest model must accept edition='community' with default capabilities."""
     m = WorkspaceManifest(project_name="x", edition="community")
     assert m.capabilities == default_capabilities()

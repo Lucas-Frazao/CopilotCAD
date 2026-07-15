@@ -1,7 +1,17 @@
-"""Spec compliance tests for F-010 — Problems panel.
+"""
+test_problems_panel.py — Problems panel spec compliance tests (F-010)
+======================================================================
 
-Verifies backend problem payloads satisfy panel contract and all MVP problem
-types surface through execute_intent with fields the UI needs.
+Verifies backend problem payloads satisfy the Problems panel contract: every
+MVP problem type can surface, payloads include UI-required fields, and
+execute_intent RPC returns problems[] for the frontend to render.
+
+F-010 is primarily a frontend panel; these backend tests enforce the RPC contract.
+
+Beginner concepts:
+  - MVP problem types: the seven issue categories the panel must display.
+  - severity: blocking > error > warning (panel sorts in this order).
+  - suggested_next_steps: actionable hints shown beside each problem row.
 """
 
 from __future__ import annotations
@@ -18,7 +28,7 @@ from schemas.problem import Problem
 
 from test_intent_ir_validation import mounting_plate_ir
 
-
+# All problem types the MVP Problems panel must support
 MVP_PROBLEM_TYPES = frozenset(
     {
         "missing_required_input",
@@ -31,22 +41,27 @@ MVP_PROBLEM_TYPES = frozenset(
     }
 )
 
+# Lower number = higher priority in the panel sort order
 SEVERITY_ORDER = {"blocking": 0, "error": 1, "warning": 2}
 
 
 def _ir(**overrides):
+    """Build validated IntentIR from golden plate with optional field overrides."""
     data = mounting_plate_ir()
     data.update(overrides)
     return validate_intent_ir(data)
 
 
 def sort_problems_by_severity(problems: list[dict]) -> list[dict]:
-    """Expected panel sort: blocking first, then error, then warning."""
+    """Sort problems the way the frontend panel should: blocking first."""
     return sorted(problems, key=lambda p: SEVERITY_ORDER.get(p["severity"], 99))
 
 
 def test_problem_payload_has_panel_required_fields():
-    """Each problem exposes type, message, severity, and suggested next steps."""
+    """
+    Each serialized problem must expose type, message, severity, and at least
+    one suggested next step for the UI to render actionable rows.
+    """
     intent = _ir(
         assumptions=[
             {
@@ -123,6 +138,7 @@ def test_problem_payload_has_panel_required_fields():
     ],
 )
 def test_all_mvp_problem_types_can_surface(overrides, expected_type):
+    """Parametrized: each MVP problem type must be producible from IR overrides."""
     intent = _ir(**overrides)
     problems = evaluate_problems(intent)
     types = {p.type for p in problems}
@@ -130,6 +146,7 @@ def test_all_mvp_problem_types_can_surface(overrides, expected_type):
 
 
 def test_geometry_failure_problem_surfaces_on_failed_execute():
+    """A failed ExecutionResult should trigger geometry_generation_failure."""
     intent = validate_intent_ir(mounting_plate_ir())
     result = ExecutionResult(success=False, error="step failed")
     problems = evaluate_problems(intent, result)
@@ -137,7 +154,10 @@ def test_geometry_failure_problem_surfaces_on_failed_execute():
 
 
 def test_execute_intent_returns_problems_for_panel():
-    """Problems panel reads problems[] from latest executeIntent — RPC must include them."""
+    """
+    Problems panel reads problems[] from the latest execute_intent response.
+    RPC must include type, message, and severity on every problem dict.
+    """
     ir = mounting_plate_ir()
     ir["steps"] = [{"id": "s1", "op": "fillet", "params": {"radius": 1.0}}]
     response = call_rpc("execute_intent", {"ir": ir})
@@ -151,6 +171,7 @@ def test_execute_intent_returns_problems_for_panel():
 
 
 def test_problems_sort_blocking_before_warnings():
+    """Panel sort order: blocking → error → warning."""
     problems = problems_to_dicts(
         [
             Problem(
@@ -179,7 +200,9 @@ def test_problems_sort_blocking_before_warnings():
 
 
 def test_problems_panel_frontend_module_exports_component():
-    """F-010 requires ProblemsPanel.tsx and ProblemItem.tsx — import via spec contract test."""
-    # Frontend is validated in ProblemsPanel.test.tsx; backend ensures RPC contract only.
+    """
+    F-010 requires ProblemsPanel.tsx on the frontend; backend only verifies
+    that the Problem schema model exists for serialization.
+    """
     mod = importlib.import_module("schemas.problem")
     assert hasattr(mod, "Problem")

@@ -1,4 +1,18 @@
-"""Tests for workspace explorer tree and file read (F-009)."""
+"""
+test_workspace_explorer.py — Workspace explorer tree and file read tests (F-009)
+================================================================================
+
+The workspace explorer lets the frontend browse project files as a tree and
+read text contents safely. These tests verify tree listing, file reads, path
+sandboxing (no directory traversal), and JSON-RPC endpoints.
+
+F-009 defines list_workspace_tree and read_workspace_file.
+
+Beginner concepts:
+  - Workspace tree: nested dict nodes with name, path, type (dir/file), children.
+  - WorkspacePathError: raised when a path escapes the workspace or hits guards.
+  - dispatch: routes JSON-RPC calls without starting a separate server.
+"""
 
 from __future__ import annotations
 
@@ -23,10 +37,12 @@ from project.workspace_tree import (
 
 
 def _node_names(nodes: list[dict]) -> set[str]:
+    """Extract the 'name' field from a list of tree nodes."""
     return {node["name"] for node in nodes}
 
 
 def _find_node(nodes: list[dict], path: str) -> dict | None:
+    """Recursively search the tree for a node with the given relative path."""
     for node in nodes:
         if node["path"] == path:
             return node
@@ -38,6 +54,7 @@ def _find_node(nodes: list[dict], path: str) -> dict | None:
 
 
 def test_list_workspace_tree_returns_top_level_dirs(tmp_path: Path):
+    """A new workspace tree should expose docs, parts, assemblies, exports."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
 
@@ -49,6 +66,7 @@ def test_list_workspace_tree_returns_top_level_dirs(tmp_path: Path):
 
 
 def test_list_workspace_tree_includes_part_artifacts(tmp_path: Path):
+    """Creating a part should make its artifact files visible in the tree."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     create_part_folder(workspace, "mounting_plate")
@@ -65,6 +83,7 @@ def test_list_workspace_tree_includes_part_artifacts(tmp_path: Path):
 
 
 def test_list_workspace_tree_jsonrpc(tmp_path: Path):
+    """list_workspace_tree RPC should return the same tree structure as the direct call."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     create_part_folder(workspace, "mounting_plate")
@@ -87,6 +106,7 @@ def test_list_workspace_tree_jsonrpc(tmp_path: Path):
 
 
 def test_read_workspace_file_returns_text(tmp_path: Path):
+    """read_workspace_file should return the spec.yaml contents as a string."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     create_part_folder(workspace, "mounting_plate")
@@ -97,6 +117,7 @@ def test_read_workspace_file_returns_text(tmp_path: Path):
 
 
 def test_read_workspace_file_jsonrpc(tmp_path: Path):
+    """read_workspace_file RPC should wrap contents in a result object."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     create_part_folder(workspace, "mounting_plate")
@@ -119,6 +140,10 @@ def test_read_workspace_file_jsonrpc(tmp_path: Path):
 
 
 def test_read_workspace_file_rejects_path_outside_workspace(tmp_path: Path):
+    """
+    Path traversal (../outside.txt) and absolute paths must raise WorkspacePathError.
+    This prevents the renderer from reading arbitrary files on disk.
+    """
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     outside = tmp_path / "outside.txt"
@@ -132,6 +157,7 @@ def test_read_workspace_file_rejects_path_outside_workspace(tmp_path: Path):
 
 
 def test_read_workspace_file_rejects_missing_file(tmp_path: Path):
+    """Reading a path that does not exist should raise WorkspacePathError."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
 
@@ -140,6 +166,7 @@ def test_read_workspace_file_rejects_missing_file(tmp_path: Path):
 
 
 def test_read_workspace_file_jsonrpc_rejects_escape(tmp_path: Path):
+    """RPC layer should return an error (not crash) for path traversal attempts."""
     workspace = tmp_path / "proj"
     create_workspace(workspace, "proj")
     outside = tmp_path / "outside.txt"
@@ -162,6 +189,7 @@ def test_read_workspace_file_jsonrpc_rejects_escape(tmp_path: Path):
 
 
 def test_list_workspace_tree_invalid_workspace(tmp_path: Path):
+    """A directory without a manifest should fail both direct call and RPC."""
     bad = tmp_path / "not_a_workspace"
     bad.mkdir()
 

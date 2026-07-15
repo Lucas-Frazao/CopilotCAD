@@ -1,4 +1,18 @@
-"""Spec compliance tests for F-015 — Parts panel."""
+"""
+test_parts_panel.py — Parts panel spec compliance tests (F-015)
+================================================================
+
+The Parts panel lists all parts in a workspace with maturity and problem counts.
+F-015 defines list_parts — a backend function (and RPC) that scans parts/ folders.
+
+These tests verify RPC registration, part discovery, maturity fields, and empty
+workspace behavior.
+
+Beginner concepts:
+  - list_parts: returns [{part_id, name, maturity, open_problem_count}, ...].
+  - maturity: draft → in_review → released lifecycle stage for a part.
+  - spec.yaml: part metadata file; list_parts reads it to build panel rows.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +26,11 @@ from rpc_helpers import assert_rpc_method_registered, call_rpc, assert_rpc_succe
 
 
 def _list_parts_fn():
+    """
+    Import list_parts from project.parts_list (or legacy parts_catalog).
+
+    Uses importlib so tests fail clearly if F-015 is not implemented yet.
+    """
     try:
         mod = importlib.import_module("project.parts_list")
     except ImportError:
@@ -23,10 +42,12 @@ def _list_parts_fn():
 
 
 def test_list_parts_rpc_registered(workspace):
+    """list_parts must be registered as a JSON-RPC method."""
     assert_rpc_method_registered("list_parts", {"workspace_path": str(workspace)})
 
 
 def test_list_parts_includes_valid_spec_folders(workspace):
+    """Parts with valid spec.yaml folders must appear in the list."""
     create_part_folder(workspace, "mounting_plate")
     create_part_folder(workspace, "bracket")
 
@@ -46,6 +67,7 @@ def test_list_parts_includes_valid_spec_folders(workspace):
 
 
 def test_list_parts_includes_maturity_and_problem_count(workspace):
+    """Each part row must expose maturity and an integer open_problem_count."""
     create_part_folder(workspace, "mounting_plate")
     spec_path = workspace / "parts" / "mounting_plate" / SPEC_FILENAME
     spec_path.write_text(
@@ -65,6 +87,7 @@ def test_list_parts_includes_maturity_and_problem_count(workspace):
 
 
 def test_list_parts_jsonrpc(workspace):
+    """list_parts RPC should return parts including newly created ones."""
     create_part_folder(workspace, "widget")
     response = call_rpc("list_parts", {"workspace_path": str(workspace)})
     parts = assert_rpc_success(response)
@@ -72,14 +95,18 @@ def test_list_parts_jsonrpc(workspace):
 
 
 def test_list_parts_empty_workspace(workspace):
+    """A workspace with no parts should return an empty list."""
     list_parts = _list_parts_fn()
     parts = list_parts(workspace)
     assert parts == []
 
 
 def test_list_parts_skips_invalid_spec(workspace):
+    """
+    Parts with broken specs may be skipped or listed depending on implementation.
+    At minimum, list_parts must return a list without crashing.
+    """
     create_part_folder(workspace, "broken")
     list_parts = _list_parts_fn()
     parts = list_parts(workspace)
-    # Default empty spec may still list part — implementation choice.
     assert isinstance(parts, list)

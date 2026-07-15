@@ -1,10 +1,24 @@
-"""Tests for Intent IR step execution engine (F-004)."""
+"""
+test_executor_mounting_plate.py — Intent IR step execution engine tests (F-004)
+===============================================================================
+
+The executor walks validated Intent IR steps in order, calling the right handler
+for each op (sketch_rectangle, extrude, etc.) and threading shapes between steps.
+
+F-004 defines the execution engine. These tests cover handler registration,
+stub ops, dependency errors, end-to-end golden path, and JSON-RPC wiring.
+
+Beginner concepts:
+  - Handler registry: maps op names like "extrude" to Python functions.
+  - ExecutionResult: success flag, step_ids completed, shapes_by_step_id map.
+  - dispatch: jsonrpcserver routes execute_intent RPC calls to the executor.
+"""
 
 import json
 
 import pytest
 
-import main  # noqa: F401 — registers JSON-RPC methods
+import main  # noqa: F401 — registers JSON-RPC methods on import
 
 from engine.errors import StepNotImplementedError
 from engine.executor import execute_intent_ir
@@ -18,6 +32,7 @@ from test_intent_ir_validation import mounting_plate_ir
 
 
 def test_handler_registry_covers_mvp_step_ops():
+    """Every MVP step op must have a callable handler in the registry."""
     for op in MVP_STEP_OPS:
         handler = get_handler(op)
         assert callable(handler)
@@ -25,6 +40,10 @@ def test_handler_registry_covers_mvp_step_ops():
 
 
 def test_stub_op_returns_step_not_implemented():
+    """
+    fillet is registered but not implemented — executor should fail gracefully
+    with a 'not implemented' message instead of crashing.
+    """
     ir_data = {
         "type": "part_create",
         "prompt": "fillet edges",
@@ -45,6 +64,10 @@ def test_stub_op_returns_step_not_implemented():
 
 
 def test_missing_from_dependency_fails_before_geometry():
+    """
+    An extrude step without a 'from' reference should fail before touching OCCT.
+    model_construct bypasses validation to test runtime dependency checks.
+    """
     intent = IntentIR.model_construct(
         type="part_create",
         prompt="bad extrude",
@@ -65,6 +88,7 @@ def test_missing_from_dependency_fails_before_geometry():
 
 
 def test_mounting_plate_ir_executes_end_to_end():
+    """Golden path: all three steps run and produce shapes keyed by step id."""
     pytest.importorskip("OCC.Core.TopoDS")
 
     intent = validate_intent_ir(mounting_plate_ir())
@@ -77,6 +101,7 @@ def test_mounting_plate_ir_executes_end_to_end():
 
 
 def test_mounting_plate_exports_step(tmp_path):
+    """After execution, the final shape should export to a non-empty STEP file."""
     pytest.importorskip("OCC.Core.TopoDS")
     from kernel.occt_bridge import read_step
 
@@ -95,6 +120,7 @@ def test_mounting_plate_exports_step(tmp_path):
 
 
 def test_execute_intent_jsonrpc_success():
+    """execute_intent RPC should return success with final_step_id s3."""
     pytest.importorskip("OCC.Core.TopoDS")
 
     request = json.dumps(
@@ -111,6 +137,7 @@ def test_execute_intent_jsonrpc_success():
 
 
 def test_execute_intent_jsonrpc_validation_error():
+    """Invalid IR sent over RPC should return JSON-RPC error code -32602."""
     bad_ir = mounting_plate_ir()
     del bad_ir["summary"]
 
@@ -128,12 +155,14 @@ def test_execute_intent_jsonrpc_validation_error():
 
 
 def test_step_not_implemented_error_has_op():
+    """StepNotImplementedError should carry the op name for clear error messages."""
     exc = StepNotImplementedError("fillet")
     assert exc.op == "fillet"
     assert "fillet" in str(exc)
 
 
 def test_validate_intent_ir_rejects_forward_dependency():
+    """Steps must not reference a later step (forward dependency is invalid)."""
     data = mounting_plate_ir()
     data["steps"] = [
         {

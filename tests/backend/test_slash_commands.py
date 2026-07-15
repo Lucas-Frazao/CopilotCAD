@@ -1,4 +1,18 @@
-"""Spec compliance tests for F-014 — Slash command handlers."""
+"""
+test_slash_commands.py — Slash command handler tests (F-014)
+==============================================================
+
+Slash commands (/vision, /part, /export, etc.) let users scaffold project
+artifacts from chat. F-014 defines handlers that create files under the workspace.
+
+These tests verify each MVP command creates the expected artifact, bad args are
+rejected, and /part scaffolds folders without writing geometry blobs.
+
+Beginner concepts:
+  - Slash command: chat message starting with / that triggers a backend handler.
+  - handle_slash_command: parses the command string and writes scaffold files.
+  - Parametrize: pytest runs one test function once per (command, meta) pair.
+"""
 
 from __future__ import annotations
 
@@ -12,6 +26,7 @@ from rpc_helpers import call_rpc, assert_rpc_success
 
 
 def _slash_handler():
+    """Import commands.slash_handlers.handle_slash_command or fail clearly."""
     try:
         mod = importlib.import_module("commands.slash_handlers")
     except ImportError as exc:
@@ -21,6 +36,7 @@ def _slash_handler():
     return fn
 
 
+# MVP slash commands and the artifact file each one must create
 MVP_COMMANDS: dict[str, dict] = {
     "/vision": {"path": "docs/product_vision.md"},
     "/constitution": {"path": "docs/constitution.md"},
@@ -39,6 +55,7 @@ MVP_COMMANDS: dict[str, dict] = {
 
 @pytest.fixture
 def slash_workspace(tmp_path: Path) -> Path:
+    """Dedicated workspace fixture for slash command tests."""
     workspace = tmp_path / "slash_proj"
     create_workspace(workspace, "slash_proj")
     return workspace
@@ -46,9 +63,15 @@ def slash_workspace(tmp_path: Path) -> Path:
 
 @pytest.mark.parametrize("command,meta", list(MVP_COMMANDS.items()))
 def test_slash_command_creates_expected_artifact(command, meta, slash_workspace):
+    """
+    Each MVP slash command must succeed and create its expected artifact file.
+
+    pytest.mark.parametrize runs this test once per entry in MVP_COMMANDS.
+    """
     handle = _slash_handler()
     context = {"workspace_path": str(slash_workspace), "active_part_id": "active_part"}
 
+    # Some commands need a part folder scaffolded first
     if meta.get("setup_part"):
         from project.part_folder import create_part_folder
 
@@ -64,6 +87,7 @@ def test_slash_command_creates_expected_artifact(command, meta, slash_workspace)
 
 
 def test_part_command_without_name_returns_error(slash_workspace):
+    """'/part' with no part name must fail with a usage hint."""
     handle = _slash_handler()
     result = handle("/part", {"workspace_path": str(slash_workspace)})
     assert result.get("success") is False
@@ -71,6 +95,7 @@ def test_part_command_without_name_returns_error(slash_workspace):
 
 
 def test_slash_command_jsonrpc_registered(slash_workspace):
+    """handle_slash_command must be reachable via JSON-RPC."""
     from rpc_helpers import assert_rpc_method_registered
 
     assert_rpc_method_registered(
@@ -80,7 +105,10 @@ def test_slash_command_jsonrpc_registered(slash_workspace):
 
 
 def test_slash_export_does_not_bypass_export_module(slash_workspace):
-    """Geometry-changing ops use export module; /part scaffolds folders only."""
+    """
+    /part scaffolds YAML stub folders only — it must not embed geometry blobs.
+    Real geometry export goes through the export module (F-024).
+    """
     handle = _slash_handler()
     from project.part_folder import create_part_folder
 
@@ -89,11 +117,11 @@ def test_slash_export_does_not_bypass_export_module(slash_workspace):
     assert part_result.get("success") is True
     spec = slash_workspace / "parts" / "new_widget" / "spec.yaml"
     assert spec.is_file()
-    # Part scaffold must not contain geometry blobs — only YAML stubs.
     assert "TopoDS" not in spec.read_text(encoding="utf-8")
 
 
 def test_handle_slash_command_returns_chat_summary(slash_workspace):
+    """Successful slash commands should return a summary or message for chat UI."""
     handle = _slash_handler()
     result = handle("/vision", {"workspace_path": str(slash_workspace)})
     assert "summary" in result or "message" in result

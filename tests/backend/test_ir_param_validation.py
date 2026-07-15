@@ -1,9 +1,17 @@
-"""Per-op step parameter validation at the IR layer (hardening M5).
+"""
+test_ir_param_validation.py — Per-op step parameter validation (hardening M5)
+=============================================================================
 
-Implemented ops carry typed parameter schemas so invalid geometry inputs
-(negative/zero dimensions, missing or non-numeric params) are rejected during
-validation with structured errors, instead of failing deep inside the kernel.
-Stub/unimplemented ops keep permissive params.
+Implemented CAD operations (sketch_rectangle, extrude, hole_pattern_corners)
+carry typed parameter schemas. Invalid geometry inputs — negative dimensions,
+missing params, non-numeric values — must be rejected at the IR layer with
+structured errors, not deep inside the OCCT kernel.
+
+Stub/unimplemented ops (like fillet) keep permissive params until implemented.
+
+Beginner concepts:
+  - IR layer: validation happens on the JSON plan before any geometry runs.
+  - IntentIRValidationError: carries field_errors listing each bad param location.
 """
 
 import pytest
@@ -13,11 +21,13 @@ from test_intent_ir_validation import mounting_plate_ir
 
 
 def test_valid_golden_ir_still_passes():
+    """Sanity check: the canonical mounting plate IR still validates cleanly."""
     intent = validate_intent_ir(mounting_plate_ir())
     assert len(intent.steps) == 3
 
 
 def test_negative_length_is_rejected():
+    """Negative sketch length must fail with an error pointing at 'length'."""
     data = mounting_plate_ir()
     data["steps"][0]["params"]["length"] = -10.0
     with pytest.raises(IntentIRValidationError) as exc_info:
@@ -26,6 +36,7 @@ def test_negative_length_is_rejected():
 
 
 def test_zero_distance_is_rejected():
+    """Zero extrude distance is not valid geometry — reject at validation."""
     data = mounting_plate_ir()
     data["steps"][1]["params"]["distance"] = 0
     with pytest.raises(IntentIRValidationError):
@@ -33,6 +44,7 @@ def test_zero_distance_is_rejected():
 
 
 def test_negative_diameter_is_rejected():
+    """Hole diameter must be positive."""
     data = mounting_plate_ir()
     data["steps"][2]["params"]["diameter"] = -1.0
     with pytest.raises(IntentIRValidationError):
@@ -40,6 +52,7 @@ def test_negative_diameter_is_rejected():
 
 
 def test_missing_required_param_is_rejected():
+    """Deleting a required param (length on sketch_rectangle) must fail."""
     data = mounting_plate_ir()
     del data["steps"][0]["params"]["length"]
     with pytest.raises(IntentIRValidationError):
@@ -47,6 +60,7 @@ def test_missing_required_param_is_rejected():
 
 
 def test_non_numeric_dimension_is_rejected():
+    """String values where numbers are expected must be rejected."""
     data = mounting_plate_ir()
     data["steps"][1]["params"]["distance"] = "thick"
     with pytest.raises(IntentIRValidationError):
@@ -54,8 +68,10 @@ def test_non_numeric_dimension_is_rejected():
 
 
 def test_stub_op_params_remain_permissive():
-    # fillet is a valid op without an implemented param schema; arbitrary params
-    # must not be rejected at the IR layer.
+    """
+    fillet is a valid op name but has no strict param schema yet.
+    Arbitrary extra params must not be rejected at the IR layer.
+    """
     data = mounting_plate_ir()
     data["steps"] = [
         {"id": "s1", "op": "fillet", "params": {"radius": 2.0, "whatever": "ok"}}

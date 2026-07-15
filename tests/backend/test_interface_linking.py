@@ -1,4 +1,18 @@
-"""Spec compliance tests for F-021 — Interface linking in assemblies."""
+"""
+test_interface_linking.py — Interface linking in assemblies tests (F-021)
+=========================================================================
+
+When assembly mates are applied, F-021 updates connects_to fields in both parts'
+spec.yaml files so the Interfaces panel shows linked status.
+
+These tests verify mate-driven linking, idempotency, conflict detection, and
+interface_refs pairing on mate steps.
+
+Beginner concepts:
+  - connects_to: {part_id, interface_id} cross-reference in spec.yaml.
+  - apply_interface_links_for_mate: writes connects_to after a mate executes.
+  - interface_conflict: problem raised when linked interfaces have mismatched specs.
+"""
 
 from __future__ import annotations
 
@@ -13,6 +27,7 @@ from spec_fixtures import mate_coincident_ir, write_linked_interface_specs
 
 
 def _linking_module():
+    """Import assembly.interface_linking or fail with a clear F-021 pending message."""
     try:
         return importlib.import_module("assembly.interface_linking")
     except ImportError as exc:
@@ -20,6 +35,10 @@ def _linking_module():
 
 
 def test_mate_updates_connects_to_on_both_specs(workspace):
+    """
+    After apply_interface_links_for_mate, both plate and bracket spec.yaml
+    must have connects_to set on their respective interfaces.
+    """
     write_linked_interface_specs(workspace)
     linking = _linking_module()
     apply_links = getattr(linking, "apply_interface_links_for_mate", None)
@@ -43,6 +62,9 @@ def test_mate_updates_connects_to_on_both_specs(workspace):
 
 
 def test_repeated_mate_is_idempotent(workspace):
+    """
+    Applying the same mate twice must not duplicate connects_to entries.
+    """
     write_linked_interface_specs(workspace)
     linking = _linking_module()
     apply_links = linking.apply_interface_links_for_mate
@@ -56,10 +78,13 @@ def test_repeated_mate_is_idempotent(workspace):
     connects = plate_spec["interfaces"][0]["connects_to"]
     if isinstance(connects, list):
         assert len(connects) == 1
-    # Single cross-reference, not duplicated entries.
 
 
 def test_mismatched_interface_triggers_conflict_problem(workspace):
+    """
+    Conflicting bolt_pattern values on linked interfaces must surface
+    an interface_conflict problem.
+    """
     write_linked_interface_specs(workspace)
     plate_path = workspace / "parts" / "mounting_plate" / "spec.yaml"
     spec = yaml.safe_load(plate_path.read_text(encoding="utf-8"))
@@ -79,6 +104,10 @@ def test_mismatched_interface_triggers_conflict_problem(workspace):
 
 
 def test_interface_refs_on_mate_step_used_for_pairing(workspace):
+    """
+    resolve_interface_pair must use links.interface_refs from the mate IR
+    to identify which interfaces to connect (mount_a and mount_b).
+    """
     linking = _linking_module()
     resolve = getattr(linking, "resolve_interface_pair", None)
     assert resolve is not None

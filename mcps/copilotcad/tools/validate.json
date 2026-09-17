@@ -1,6 +1,6 @@
 {
   "name": "validate",
-  "description": "Run Evie enclosure hard gates (extents, manifold/no-float, fill band, named cutouts, cover hole pattern, design-mm only) and return a JSON report.",
+  "description": "Run Evie enclosure hard gates (extents, manifold/no-float, fill band, named cutouts, cover hole pattern, design-mm only) and return a JSON report. Present passed + failed gate ids and artifact_id to the user for approve/revise.",
   "inputSchema": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -17,6 +17,17 @@
       "mate_artifact_id": {
         "type": "string",
         "description": "Optional faceplate artifact when validating cover hole/boss alignment."
+      },
+      "inline_spec": {
+        "description": "Optional YAML/JSON spec (string, object, or path) used as the gate contract. Overrides the spec stored on the artifact.",
+        "oneOf": [
+          {"type": "string"},
+          {"type": "object"}
+        ]
+      },
+      "token": {
+        "type": "string",
+        "description": "Bot token. Default stub is local-dogfood (or COPILOTCAD_BOT_TOKEN)."
       }
     }
   }

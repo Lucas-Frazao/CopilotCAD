@@ -28,7 +28,8 @@ or an HTTP/MCP connector.
    - design-mm only (ignore FDM shrink)
 3. Parametric builders for badge + cover, then faceplate shell, via
    `engine.kernel_adapter` (no CadQuery; no OCCT imports outside `occt_bridge.py`).
-4. Thin HTTP (and MCP tool schemas): generate / validate / export.
+4. Thin HTTP **and installable MCP stdio**: generate / validate / export /
+   get_evie_spec. `generate` accepts `part` and/or `inline_spec`.
    Auth = local/bot token stub (`COPILOTCAD_BOT_TOKEN`, default `local-dogfood`).
 5. Tests: ~80% brick fails fill-band; proper shell passes; badge+cover smoke.
 6. No Electron / JSON-RPC changes. No OnShape. No overwrite of product print-GO.
@@ -48,3 +49,7 @@ or an HTTP/MCP connector.
 3. `python -m enclosure validate --part brick` fails `faceplate_fill_band`.
 4. HTTP `POST /v1/generate|validate|export` works with a bearer token.
 5. Inventory + connector docs live under `docs/dogfood/`.
+6. MCP stdio (`python -m enclosure mcp` / `mcps/copilotcad/server.py`) lists
+   and calls generate / validate / export / get_evie_spec.
+7. `docs/dogfood/grok_cad_bot_loop.md` documents interview → spec → tools →
+   approve/revise for Grok CAD Bot / CoS.

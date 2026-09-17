@@ -1,0 +1,20 @@
+{
+  "name": "get_evie_spec",
+  "description": "Return the checked-in Evie enclosure v3 machine-readable spec (YAML or JSON). Use this as the interview template before emitting a revised inline_spec.",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "format": {
+        "type": "string",
+        "enum": ["yaml", "json"],
+        "default": "yaml",
+        "description": "Serialization for the spec.text field."
+      },
+      "token": {
+        "type": "string",
+        "description": "Bot token. Default stub is local-dogfood (or COPILOTCAD_BOT_TOKEN)."
+      }
+    }
+  }
+}

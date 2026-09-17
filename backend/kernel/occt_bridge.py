@@ -29,10 +29,10 @@ OCCT CONCEPTS FOR BEGINNERS
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 # --- Open CASCADE imports (ONLY allowed in this file) ---
 from OCC.Core.Bnd import Bnd_Box  # Axis-aligned bounding box
+from OCC.Core.BRep import BRep_Tool  # Extract triangulation from faces
 from OCC.Core.BRepAdaptor import BRepAdaptor_Surface  # Surface type queries
 from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse  # Boolean ops
 from OCC.Core.BRepBndLib import brepbndlib  # Add shape to bounding box
@@ -40,21 +40,37 @@ from OCC.Core.BRepBuilderAPI import (
     BRepBuilderAPI_MakeEdge,
     BRepBuilderAPI_MakeFace,
     BRepBuilderAPI_MakeWire,
+    BRepBuilderAPI_Transform,
 )
-from OCC.Core.BRep import BRep_Tool  # Extract triangulation from faces
+from OCC.Core.BRepCheck import BRepCheck_Analyzer
+from OCC.Core.BRepClass3d import BRepClass3d_SolidClassifier
+from OCC.Core.BRepGProp import brepgprop
 from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh  # Mesh generator
-from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
+from OCC.Core.BRepPrimAPI import (
+    BRepPrimAPI_MakeBox,
+    BRepPrimAPI_MakeCylinder,
+    BRepPrimAPI_MakePrism,
+)
 from OCC.Core.GeomAbs import GeomAbs_Plane  # Enum: surface is a plane
-from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Vec  # Geometry primitives (points, vectors, axes)
+from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
+from OCC.Core.GProp import GProp_GProps
 from OCC.Core.IFSelect import IFSelect_RetDone  # Success return code for readers/writers
 from OCC.Core.IGESControl import IGESControl_Writer
 from OCC.Core.STEPControl import STEPControl_AsIs, STEPControl_Reader, STEPControl_Writer
-from OCC.Core.TopAbs import TopAbs_FACE  # Shape type enum: face
+from OCC.Core.StlAPI import StlAPI_Writer
+from OCC.Core.TopAbs import (
+    TopAbs_FACE,
+    TopAbs_IN,
+    TopAbs_ON,
+    TopAbs_OUT,
+    TopAbs_SHELL,
+    TopAbs_SOLID,
+)
 from OCC.Core.TopExp import TopExp_Explorer  # Iterate child shapes
 from OCC.Core.TopLoc import TopLoc_Location  # Placement transform on a shape
 from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Shape, topods  # TopoDS types + casts
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 # MVP only supports a subset of planes, directions, and modes — validated below
 SUPPORTED_PLANES = frozenset({"XY"})
@@ -377,3 +393,162 @@ def _as_face(profile: TopoDS_Shape) -> TopoDS_Face:
         return topods.Face(explorer.Current())
 
     raise GeometryError("profile must be a face or contain a face")
+
+
+def make_box_at(
+    dx: float,
+    dy: float,
+    dz: float,
+    xmin: float,
+    ymin: float,
+    zmin: float,
+) -> TopoDS_Shape:
+    """Build a box of size (dx, dy, dz) with the min-corner at (xmin, ymin, zmin)."""
+    _require_positive("dx", dx)
+    _require_positive("dy", dy)
+    _require_positive("dz", dz)
+    box = BRepPrimAPI_MakeBox(gp_Pnt(xmin, ymin, zmin), dx, dy, dz)
+    shape = box.Shape()
+    _require_shape("box solid", shape)
+    return shape
+
+
+def make_cylinder(
+    radius: float,
+    height: float,
+    x: float,
+    y: float,
+    z: float,
+    direction: str = "+Z",
+) -> TopoDS_Shape:
+    """Build a cylinder whose base center is (x, y, z) and axis follows direction."""
+    _require_positive("radius", radius)
+    _require_positive("height", height)
+    _require_in("direction", direction, SUPPORTED_DIRECTIONS)
+    if direction == "+Z":
+        axis = gp_Ax2(gp_Pnt(x, y, z), gp_Dir(0.0, 0.0, 1.0))
+    else:
+        raise GeometryError(f"unsupported direction: {direction}")
+    cylinder = BRepPrimAPI_MakeCylinder(axis, radius, height)
+    shape = cylinder.Shape()
+    _require_shape("cylinder solid", shape)
+    return shape
+
+
+def sketch_polygon(points: list[tuple[float, float]]) -> TopoDS_Shape:
+    """Build a planar polygonal face on Z=0 from at least three (x, y) points."""
+    if len(points) < 3:
+        raise GeometryError("polygon needs at least 3 points")
+
+    vertices = [gp_Pnt(float(x), float(y), 0.0) for x, y in points]
+    wire_builder = BRepBuilderAPI_MakeWire()
+    for index, start in enumerate(vertices):
+        end = vertices[(index + 1) % len(vertices)]
+        edge = BRepBuilderAPI_MakeEdge(start, end)
+        if not edge.IsDone():
+            raise GeometryError("failed to build polygon edge")
+        wire_builder.Add(edge.Edge())
+
+    if not wire_builder.IsDone():
+        raise GeometryError("failed to build polygon wire")
+
+    face_builder = BRepBuilderAPI_MakeFace(wire_builder.Wire())
+    if not face_builder.IsDone():
+        raise GeometryError("failed to build polygon face")
+    return face_builder.Face()
+
+
+def cut_shape(solid: TopoDS_Shape, tool: TopoDS_Shape) -> TopoDS_Shape:
+    """Boolean-subtract tool from solid."""
+    _require_shape("solid", solid)
+    _require_shape("tool", tool)
+    cut = BRepAlgoAPI_Cut(solid, tool)
+    cut.Build()
+    if not cut.IsDone():
+        raise GeometryError("boolean cut failed")
+    result = cut.Shape()
+    _require_shape("cut result", result)
+    return result
+
+
+def translate_shape(shape: TopoDS_Shape, dx: float, dy: float, dz: float) -> TopoDS_Shape:
+    """Translate a shape by (dx, dy, dz)."""
+    _require_shape("shape", shape)
+    transform = gp_Trsf()
+    transform.SetTranslation(gp_Vec(dx, dy, dz))
+    moved = BRepBuilderAPI_Transform(shape, transform, True)
+    result = moved.Shape()
+    _require_shape("translated shape", result)
+    return result
+
+
+def shape_bbox(shape: TopoDS_Shape) -> tuple[float, float, float, float, float, float]:
+    """Public bbox helper: (xmin, ymin, zmin, xmax, ymax, zmax)."""
+    _require_shape("shape", shape)
+    return _shape_bbox(shape)
+
+
+def shape_volume(shape: TopoDS_Shape) -> float:
+    """Return the absolute solid volume of a shape in cubic model units."""
+    _require_shape("shape", shape)
+    props = GProp_GProps()
+    brepgprop.VolumeProperties(shape, props)
+    return abs(float(props.Mass()))
+
+
+def count_subshapes(shape: TopoDS_Shape, kind: str) -> int:
+    """Count SOLID, SHELL, or FACE children of a shape."""
+    _require_shape("shape", shape)
+    mapping = {
+        "solid": TopAbs_SOLID,
+        "shell": TopAbs_SHELL,
+        "face": TopAbs_FACE,
+    }
+    if kind not in mapping:
+        raise GeometryError(f"kind must be one of {sorted(mapping)}, got {kind!r}")
+    explorer = TopExp_Explorer(shape, mapping[kind])
+    count = 0
+    while explorer.More():
+        count += 1
+        explorer.Next()
+    return count
+
+
+def is_valid_manifold(shape: TopoDS_Shape) -> bool:
+    """True when OCCT's BRepCheck analyzer considers the shape valid (manifold B-rep)."""
+    _require_shape("shape", shape)
+    analyzer = BRepCheck_Analyzer(shape)
+    return bool(analyzer.IsValid())
+
+
+def classify_point(shape: TopoDS_Shape, x: float, y: float, z: float) -> str:
+    """Classify a point as 'in', 'out', or 'on' relative to a solid."""
+    _require_shape("shape", shape)
+    classifier = BRepClass3d_SolidClassifier(shape)
+    classifier.Perform(gp_Pnt(x, y, z), 1.0e-6)
+    state = classifier.State()
+    if state == TopAbs_IN:
+        return "in"
+    if state == TopAbs_OUT:
+        return "out"
+    if state == TopAbs_ON:
+        return "on"
+    return "unknown"
+
+
+def export_stl(shape: TopoDS_Shape, path: PathLike) -> None:
+    """Mesh a shape and write binary STL. Dogfood export only — not product print-GO."""
+    _require_shape("shape", shape)
+    output_path = Path(path)
+    output_path.parent.mkdir(parents=True, exist_ok=True)
+
+    mesh = BRepMesh_IncrementalMesh(shape, 0.2)
+    mesh.Perform()
+    if not mesh.IsDone():
+        raise GeometryError("STL tessellation failed")
+
+    writer = StlAPI_Writer()
+    writer.SetASCIIMode(False)
+    ok = writer.Write(shape, str(output_path))
+    if not ok:
+        raise GeometryError("STL write failed")

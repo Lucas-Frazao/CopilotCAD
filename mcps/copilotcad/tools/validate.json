@@ -1,0 +1,23 @@
+{
+  "name": "validate",
+  "description": "Run Evie enclosure hard gates (extents, manifold/no-float, fill band, named cutouts, cover hole pattern, design-mm only) and return a JSON report.",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "part": {
+        "type": "string",
+        "enum": ["badge", "cover", "faceplate"],
+        "description": "Part to generate-and-validate when artifact_id is omitted."
+      },
+      "artifact_id": {
+        "type": "string",
+        "description": "Id returned by generate. If set, validate that solid."
+      },
+      "mate_artifact_id": {
+        "type": "string",
+        "description": "Optional faceplate artifact when validating cover hole/boss alignment."
+      }
+    }
+  }
+}

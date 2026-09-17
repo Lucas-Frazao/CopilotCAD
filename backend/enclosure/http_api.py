@@ -1,9 +1,10 @@
 """
 Thin HTTP surface for Grok / CoS bots.
 
-    POST /v1/generate   { "part": "badge"|"cover"|"faceplate" }
-    POST /v1/validate   { "part": "...", "artifact_id"?: "..." }
-    POST /v1/export     { "part": "...", "format": "step"|"stl"|"iges", "dest"?: "..." }
+    POST /v1/generate   { "part"?: "...", "inline_spec"?: {}|string }
+    POST /v1/validate   { "part"?: "...", "artifact_id"?: "...", "inline_spec"?: ... }
+    POST /v1/export     { "part"?: "...", "format": "step"|"stl"|"iges", "dest"?: "..." }
+    GET  /v1/spec       ?format=yaml|json
     GET  /health
 
 Auth: ``Authorization: Bearer <token>`` or ``X-Bot-Token``.
@@ -13,33 +14,29 @@ Default token is ``local-dogfood`` (override with ``COPILOTCAD_BOT_TOKEN``).
 from __future__ import annotations
 
 import json
-import os
-import secrets
 import tempfile
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import parse_qs, urlparse
 
+from enclosure.auth import DEFAULT_TOKEN, authorize_http, bot_token
 from enclosure.service import (
     EXPORT_FORMATS,
     PUBLIC_PARTS,
     export_part,
     generate_part,
+    get_evie_spec,
     validate_part,
 )
 
-DEFAULT_TOKEN = "local-dogfood"
-
-
-def bot_token() -> str:
-    return os.environ.get("COPILOTCAD_BOT_TOKEN") or DEFAULT_TOKEN
+__all__ = ["DEFAULT_TOKEN", "EnclosureHandler", "bot_token", "make_server", "serve_forever"]
 
 
 class EnclosureHandler(BaseHTTPRequestHandler):
     """Stdlib HTTP handler — no extra web framework dependency."""
 
-    server_version = "CopilotCADEnclosure/0.1"
+    server_version = "CopilotCADEnclosure/0.2"
 
     def log_message(self, fmt: str, *args: Any) -> None:
         # Keep test output quiet; operators can wrap the process for access logs.
@@ -58,14 +55,10 @@ class EnclosureHandler(BaseHTTPRequestHandler):
         self._send(401, {"ok": False, "error": "missing or invalid bot token"})
 
     def _authorized(self) -> bool:
-        expected = bot_token()
-        header = self.headers.get("Authorization", "")
-        token = ""
-        if header.lower().startswith("bearer "):
-            token = header[7:].strip()
-        if not token:
-            token = self.headers.get("X-Bot-Token", "").strip()
-        return bool(token) and secrets.compare_digest(token, expected)
+        return authorize_http(
+            self.headers.get("Authorization", ""),
+            self.headers.get("X-Bot-Token", ""),
+        )
 
     def do_OPTIONS(self) -> None:
         self.send_response(204)
@@ -75,9 +68,21 @@ class EnclosureHandler(BaseHTTPRequestHandler):
         self.end_headers()
 
     def do_GET(self) -> None:
-        path = urlparse(self.path).path
+        parsed = urlparse(self.path)
+        path = parsed.path
         if path in {"/health", "/v1/health"}:
             self._send(200, {"ok": True, "service": "copilotcad-enclosure", "auth": "bot-token"})
+            return
+        if path in {"/v1/spec", "/v1/get_evie_spec"}:
+            if not self._authorized():
+                self._unauthorized()
+                return
+            query = parse_qs(parsed.query)
+            fmt = (query.get("format") or ["yaml"])[0]
+            try:
+                self._send(200, get_evie_spec(format=fmt))
+            except ValueError as exc:
+                self._send(400, {"ok": False, "error": str(exc)})
             return
         self._send(404, {"ok": False, "error": f"unknown path {path}"})
 
@@ -108,7 +113,10 @@ class EnclosureHandler(BaseHTTPRequestHandler):
             if path == "/v1/export":
                 self._handle_export(payload)
                 return
-        except (ValueError, KeyError, FileNotFoundError) as exc:
+            if path in {"/v1/spec", "/v1/get_evie_spec"}:
+                self._send(200, get_evie_spec(format=str(payload.get("format") or "yaml")))
+                return
+        except (ValueError, KeyError, FileNotFoundError, TypeError) as exc:
             self._send(400, {"ok": False, "error": str(exc)})
             return
         except Exception as exc:  # noqa: BLE001
@@ -118,23 +126,31 @@ class EnclosureHandler(BaseHTTPRequestHandler):
         self._send(404, {"ok": False, "error": f"unknown path {path}"})
 
     def _handle_generate(self, payload: dict[str, Any]) -> None:
-        part = str(payload.get("part") or "")
-        if part not in PUBLIC_PARTS:
-            self._send(400, {"ok": False, "error": f"part must be one of {PUBLIC_PARTS}"})
+        part = payload.get("part")
+        inline_spec = payload.get("inline_spec")
+        if part is None and inline_spec is None:
+            self._send(400, {"ok": False, "error": "part or inline_spec required"})
             return
-        self._send(200, generate_part(part))
+        if part is not None:
+            part = str(part)
+            if part not in PUBLIC_PARTS:
+                self._send(400, {"ok": False, "error": f"part must be one of {PUBLIC_PARTS}"})
+                return
+        self._send(200, generate_part(part, inline_spec=inline_spec))
 
     def _handle_validate(self, payload: dict[str, Any]) -> None:
         part = payload.get("part")
         artifact_id = payload.get("artifact_id")
         mate_artifact_id = payload.get("mate_artifact_id")
-        if not part and not artifact_id:
-            self._send(400, {"ok": False, "error": "part or artifact_id required"})
+        inline_spec = payload.get("inline_spec")
+        if not part and not artifact_id and inline_spec is None:
+            self._send(400, {"ok": False, "error": "part, artifact_id, or inline_spec required"})
             return
         report = validate_part(
             part,
             artifact_id=artifact_id,
             mate_artifact_id=mate_artifact_id,
+            inline_spec=inline_spec,
         )
         status = 200 if report.get("passed") else 422
         self._send(status, report)
@@ -142,6 +158,7 @@ class EnclosureHandler(BaseHTTPRequestHandler):
     def _handle_export(self, payload: dict[str, Any]) -> None:
         part = payload.get("part")
         artifact_id = payload.get("artifact_id")
+        inline_spec = payload.get("inline_spec")
         fmt = str(payload.get("format") or "step").lower()
         if fmt not in EXPORT_FORMATS:
             self._send(400, {"ok": False, "error": f"format must be one of {EXPORT_FORMATS}"})
@@ -151,7 +168,13 @@ class EnclosureHandler(BaseHTTPRequestHandler):
             dest_path = Path(dest)
         else:
             dest_path = Path(tempfile.mkdtemp(prefix="copilotcad-enclosure-")) / f"part.{fmt}"
-        result = export_part(fmt, dest_path, part=part, artifact_id=artifact_id)
+        result = export_part(
+            fmt,
+            dest_path,
+            part=part,
+            artifact_id=artifact_id,
+            inline_spec=inline_spec,
+        )
         self._send(200, result)
 
 

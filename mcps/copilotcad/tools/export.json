@@ -1,6 +1,6 @@
 {
   "name": "export",
-  "description": "Export a generated Evie enclosure solid to STEP, STL, or IGES. Dogfood artifact only.",
+  "description": "Export a generated Evie enclosure solid to STEP, STL, or IGES and return path + bytes. Dogfood artifact only — present the path for approve/revise, do not treat as product print-GO.",
   "inputSchema": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -12,6 +12,13 @@
       "artifact_id": {
         "type": "string"
       },
+      "inline_spec": {
+        "description": "Optional YAML/JSON spec used when generating a new solid because artifact_id is omitted.",
+        "oneOf": [
+          {"type": "string"},
+          {"type": "object"}
+        ]
+      },
       "format": {
         "type": "string",
         "enum": ["step", "stl", "iges"],
@@ -20,6 +27,10 @@
       "dest": {
         "type": "string",
         "description": "Optional output path. Directory is created if needed."
+      },
+      "token": {
+        "type": "string",
+        "description": "Bot token. Default stub is local-dogfood (or COPILOTCAD_BOT_TOKEN)."
       }
     }
   }

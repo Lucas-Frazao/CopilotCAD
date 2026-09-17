@@ -1,20 +1,19 @@
 {
-  "feature": "evie-enclosure-dogfood",
+  "feature": "grok-cad-bot-mcp",
   "allowed_prefixes": [
-    "backend/kernel/",
-    "backend/engine/",
     "backend/enclosure/",
     "backend/pyproject.toml",
     "tests/backend/",
-    "specs/evie/",
     "specs/dogfood/",
     "docs/dogfood/",
     "mcps/copilotcad/",
-    ".cursor/feature-scope.json"
+    ".cursor/feature-scope.json",
+    ".cursor/mcp.json",
+    ".mcp.json"
   ],
   "blocked_prefixes": [
     "docs/Docs_001/feature_roadmap_001.md",
     "docs/Docs_001/architecture_001.md"
   ],
-  "notes": "Week-1 Evie enclosure dogfood: builders, gate runner, HTTP/MCP connector. No Electron/JSON-RPC changes. Do not edit roadmap or architecture."
+  "notes": "Grok CAD Bot MCP/HTTP connector: generate/validate/export/get_evie_spec. No Electron/JSON-RPC/OnShape. Do not edit roadmap or architecture."
 }

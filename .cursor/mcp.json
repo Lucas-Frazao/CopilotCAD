@@ -10,6 +10,13 @@
     "context7": {
       "command": "npx",
       "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "copilotcad-enclosure": {
+      "command": "python",
+      "args": ["${workspaceFolder}/mcps/copilotcad/server.py"],
+      "env": {
+        "COPILOTCAD_BOT_TOKEN": "local-dogfood"
+      }
     }
   }
 }

@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "copilotcad-enclosure": {
+      "command": "python",
+      "args": ["${workspaceFolder}/mcps/copilotcad/server.py"],
+      "env": {
+        "COPILOTCAD_BOT_TOKEN": "local-dogfood"
+      }
+    }
+  }
+}

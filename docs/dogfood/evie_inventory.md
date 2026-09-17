@@ -12,7 +12,7 @@ and print-GO stay with CAD Leader + EVIE Project Leader.
 | Kernel boundary | `engine/kernel_adapter.py` (lazy OCCT) | Wrappers for the new bridge primitives |
 | Project FS | workspace / part folders / history / export polish | Not used by the bot connector (in-memory artifacts) |
 | Frontend | Electron + JSON-RPC stdio | **Unchanged** — bots do not need the IDE |
-| MCP | `mcps/github/*`, `mcps/context7/*` only | CAD generate/validate/export tool schemas |
+| MCP | `mcps/github/*`, `mcps/context7/*` | CAD stdio server + generate/validate/export/get_evie_spec |
 | HTTP | none | `enclosure.http_api` on localhost |
 | Evie spec | none | `specs/evie/evie_enclosure_v3_spec.yaml` (+ json) |
 | Gates | Problems engine is IR/workspace warnings, not solid gates | `enclosure.gates` + CLI JSON report |
@@ -21,6 +21,6 @@ and print-GO stay with CAD Leader + EVIE Project Leader.
 ## Reuse decisions
 
 - **No CadQuery.** The repo already cannot import CadQuery; OCCT via the bridge is the kernel.
-- **No new JSON-RPC methods.** Grok/CoS call HTTP (or the same service functions the MCP schemas describe).
+- **No new IDE JSON-RPC methods.** Grok/CoS call the enclosure MCP stdio server or HTTP; both use `enclosure.service`. See `docs/dogfood/grok_cad_bot_loop.md`.
 - **No Electron work.** Connector is backend-only.
 - **IR path reused at the kernel layer** (same adapter the step handlers use), not by inventing a parallel modeller.

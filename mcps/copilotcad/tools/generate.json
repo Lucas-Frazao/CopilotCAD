@@ -1,6 +1,6 @@
 {
   "name": "generate",
-  "description": "Generate an Evie enclosure-class solid (badge, cover, or faceplate) via CopilotCAD OCCT builders. Dogfood only — not product print-GO.",
+  "description": "Generate an Evie enclosure-class solid (badge, cover, or faceplate) via CopilotCAD OCCT builders. Pass part and/or inline_spec (YAML/JSON object or string). Dogfood only — not product print-GO.",
   "inputSchema": {
     "$schema": "http://json-schema.org/draft-07/schema#",
     "type": "object",
@@ -8,9 +8,23 @@
       "part": {
         "type": "string",
         "enum": ["badge", "cover", "faceplate"],
-        "description": "Which parametric part to build."
+        "description": "Which parametric part to build. Required unless inline_spec names exactly one public part."
+      },
+      "inline_spec": {
+        "description": "Machine-readable enclosure spec as a YAML/JSON string, object, or file path. Gates later score against this contract. Geometry still comes from checked-in OCCT builders.",
+        "oneOf": [
+          {"type": "string"},
+          {"type": "object"}
+        ]
+      },
+      "token": {
+        "type": "string",
+        "description": "Bot token. Default stub is local-dogfood (or COPILOTCAD_BOT_TOKEN). Required only when the env token is customized."
       }
     },
-    "required": ["part"]
+    "anyOf": [
+      {"required": ["part"]},
+      {"required": ["inline_spec"]}
+    ]
   }
 }

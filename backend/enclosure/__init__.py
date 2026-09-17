@@ -6,6 +6,6 @@ Product STL print-GO stays with CAD Leader + EVIE Project Leader; this is
 platform dogfood only.
 """
 
-from enclosure.service import export_part, generate_part, validate_part
+from enclosure.service import export_part, generate_part, get_evie_spec, validate_part
 
-__all__ = ["export_part", "generate_part", "validate_part"]
+__all__ = ["export_part", "generate_part", "get_evie_spec", "validate_part"]

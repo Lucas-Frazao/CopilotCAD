@@ -1,11 +1,20 @@
 {
-  "feature": "F-010-F-027",
+  "feature": "evie-enclosure-dogfood",
   "allowed_prefixes": [
-    "backend/",
-    "frontend/",
+    "backend/kernel/",
+    "backend/engine/",
+    "backend/enclosure/",
+    "backend/pyproject.toml",
     "tests/backend/",
-    "specs/specs_001/"
+    "specs/evie/",
+    "specs/dogfood/",
+    "docs/dogfood/",
+    "mcps/copilotcad/",
+    ".cursor/feature-scope.json"
   ],
-  "blocked_prefixes": ["docs/Docs_001/feature_roadmap_001.md", "docs/Docs_001/architecture_001.md"],
-  "notes": "Batch implementation F-010 through F-027 per spec compliance tests."
+  "blocked_prefixes": [
+    "docs/Docs_001/feature_roadmap_001.md",
+    "docs/Docs_001/architecture_001.md"
+  ],
+  "notes": "Week-1 Evie enclosure dogfood: builders, gate runner, HTTP/MCP connector. No Electron/JSON-RPC changes. Do not edit roadmap or architecture."
 }

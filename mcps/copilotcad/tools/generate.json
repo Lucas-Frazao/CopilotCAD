@@ -1,0 +1,16 @@
+{
+  "name": "generate",
+  "description": "Generate an Evie enclosure-class solid (badge, cover, or faceplate) via CopilotCAD OCCT builders. Dogfood only — not product print-GO.",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "part": {
+        "type": "string",
+        "enum": ["badge", "cover", "faceplate"],
+        "description": "Which parametric part to build."
+      }
+    },
+    "required": ["part"]
+  }
+}

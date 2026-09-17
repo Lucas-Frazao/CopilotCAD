@@ -1,0 +1,26 @@
+{
+  "name": "export",
+  "description": "Export a generated Evie enclosure solid to STEP, STL, or IGES. Dogfood artifact only.",
+  "inputSchema": {
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "type": "object",
+    "properties": {
+      "part": {
+        "type": "string",
+        "enum": ["badge", "cover", "faceplate"]
+      },
+      "artifact_id": {
+        "type": "string"
+      },
+      "format": {
+        "type": "string",
+        "enum": ["step", "stl", "iges"],
+        "default": "step"
+      },
+      "dest": {
+        "type": "string",
+        "description": "Optional output path. Directory is created if needed."
+      }
+    }
+  }
+}

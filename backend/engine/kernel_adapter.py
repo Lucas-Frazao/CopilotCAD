@@ -55,3 +55,101 @@ def fuse_shapes(shape_a: Any, shape_b: Any) -> Any:
     from kernel.occt_bridge import fuse_shapes as bridge_fuse_shapes
 
     return bridge_fuse_shapes(shape_a, shape_b)
+
+
+def make_box_at(dx: float, dy: float, dz: float, xmin: float, ymin: float, zmin: float) -> Any:
+    """Build a box of size (dx, dy, dz) with min-corner at (xmin, ymin, zmin)."""
+    from kernel.occt_bridge import make_box_at as bridge_make_box_at
+
+    return bridge_make_box_at(dx, dy, dz, xmin, ymin, zmin)
+
+
+def make_cylinder(
+    radius: float,
+    height: float,
+    x: float,
+    y: float,
+    z: float,
+    direction: str = "+Z",
+) -> Any:
+    """Build a cylinder with base center (x, y, z)."""
+    from kernel.occt_bridge import make_cylinder as bridge_make_cylinder
+
+    return bridge_make_cylinder(radius, height, x, y, z, direction)
+
+
+def sketch_polygon(points: list[tuple[float, float]]) -> Any:
+    """Build a planar polygonal face on Z=0."""
+    from kernel.occt_bridge import sketch_polygon as bridge_sketch_polygon
+
+    return bridge_sketch_polygon(points)
+
+
+def cut_shape(solid: Any, tool: Any) -> Any:
+    """Boolean-subtract tool from solid."""
+    from kernel.occt_bridge import cut_shape as bridge_cut_shape
+
+    return bridge_cut_shape(solid, tool)
+
+
+def translate_shape(shape: Any, dx: float, dy: float, dz: float) -> Any:
+    """Translate a shape by (dx, dy, dz)."""
+    from kernel.occt_bridge import translate_shape as bridge_translate_shape
+
+    return bridge_translate_shape(shape, dx, dy, dz)
+
+
+def shape_bbox(shape: Any) -> tuple[float, float, float, float, float, float]:
+    """Return (xmin, ymin, zmin, xmax, ymax, zmax)."""
+    from kernel.occt_bridge import shape_bbox as bridge_shape_bbox
+
+    return bridge_shape_bbox(shape)
+
+
+def shape_volume(shape: Any) -> float:
+    """Return absolute solid volume in cubic model units."""
+    from kernel.occt_bridge import shape_volume as bridge_shape_volume
+
+    return bridge_shape_volume(shape)
+
+
+def count_subshapes(shape: Any, kind: str) -> int:
+    """Count SOLID, SHELL, or FACE children."""
+    from kernel.occt_bridge import count_subshapes as bridge_count_subshapes
+
+    return bridge_count_subshapes(shape, kind)
+
+
+def is_valid_manifold(shape: Any) -> bool:
+    """True when OCCT considers the B-rep valid / manifold."""
+    from kernel.occt_bridge import is_valid_manifold as bridge_is_valid_manifold
+
+    return bridge_is_valid_manifold(shape)
+
+
+def classify_point(shape: Any, x: float, y: float, z: float) -> str:
+    """Classify a point as 'in', 'out', or 'on'."""
+    from kernel.occt_bridge import classify_point as bridge_classify_point
+
+    return bridge_classify_point(shape, x, y, z)
+
+
+def export_stl(shape: Any, path: Any) -> None:
+    """Write a binary STL (dogfood only)."""
+    from kernel.occt_bridge import export_stl as bridge_export_stl
+
+    bridge_export_stl(shape, path)
+
+
+def export_step(shape: Any, path: Any) -> None:
+    """Write a STEP file via the OCCT bridge."""
+    from kernel.occt_bridge import export_step as bridge_export_step
+
+    bridge_export_step(shape, path)
+
+
+def export_iges(shape: Any, path: Any) -> None:
+    """Write an IGES file via the OCCT bridge."""
+    from kernel.occt_bridge import export_iges as bridge_export_iges
+
+    bridge_export_iges(shape, path)

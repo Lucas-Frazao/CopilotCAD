@@ -1,0 +1,92 @@
+# Evie Enclosure v3 — machine-readable product spec (design mm)
+# Source of truth for AI CAD dogfood gates. Product STLs/print GO: CAD Leader + EVIE Project Leader.
+# Golden fixtures: /workspace/evie-stl/
+# Printer shrink is out of scope for these gates (validate design-mm only).
+
+schema_version: "1.1"
+project: Evie
+enclosure: v3
+units: mm
+updated: "2026-09-16"
+owners:
+  product_stl_print_go: [EVIE Project Leader, CAD Leader]
+  platform_dogfood: CAD Platform Lead
+
+golden_fixtures:
+  directory: /workspace/evie-stl
+  files:
+    faceplate: Evie_Faceplate_v3.stl
+    cover: Evie_Faceplate_Cover_v3.stl
+    badge: Evie_Badge_v3.stl
+
+parts:
+  faceplate:
+    id: faceplate_tray
+    role: desk_voice_hid_tray
+    extents: { x: 115, y: 65, z: 28 }  # body; golden bbox Z~34 with feet
+    feet: { included_in_golden_bbox: true, body_z_mm: 28, bbox_z_mm_approx: 34 }
+    extents_tol: 1.0
+    shell:
+      wall_mm: { min: 2.0, max: 2.4 }
+      solid_volume_fraction: { min: 0.20, max: 0.25 }  # not a solid brick
+    features:
+      - { id: pico_bay, type: pocket, size: { x: 51, y: 21 }, note: "Pico H bay" }
+      - { id: mute, type: boss_bore, diameter: 10, note: "latching SPST" }
+      - { id: mic, type: hole, diameter: 6 }
+      - { id: speaker, type: hole, diameter: 8 }
+      - { id: status_led, type: hole, diameter: 2, note: "Pico GP15" }
+      - { id: hid_usbc, type: edge_cutout, facing: front, note: "USB-C toward Mac Mini" }
+      - { id: corner_bosses, type: boss, count: 4, note: "mates cover; M2/M2.5 class" }
+    required_named_cutouts: [pico_bay, mute, mic, speaker, status_led, hid_usbc]
+    manifold: true
+    no_floating_shells: true
+
+  cover:
+    id: faceplate_bottom_lid
+    role: tray_bottom_lid
+    extents: { x: 115, y: 65, z: 1.75 }  # allow 1.5–2.0
+    extents_z_range: { min: 1.5, max: 2.0 }
+    extents_tol: 1.0
+    holes:
+      pattern: rectangular_4_corner
+      count: 4
+      mates: faceplate.corner_bosses
+      clearance: M2_or_M2.5
+    must_not_block: [mute, mic, speaker, status_led, hid_usbc]
+    manifold: true
+    no_floating_shells: true
+    note: "Badge is NOT the lid"
+
+  badge:
+    id: tower_nameplate
+    role: tower_badge
+    extents: { x: 45, y: 15, z: 2 }
+    extents_tol: 1.0
+    legend:
+      text: EVIE
+      style: raised
+      raise_mm: 0.3
+    manifold: true
+    no_floating_shells: true
+
+gates:
+  - extents_within_tol
+  - manifold_no_float  # open tray: manifold + no float; NOT closed-volume watertight
+  - no_floating_geometry
+  - faceplate_fill_band
+  - named_cutouts_present
+  - cover_hole_pattern_aligns_bosses
+  - design_mm_only  # ignore measured FDM shrink (~90–91% on Adventurer 5M)
+
+print_notes_human:
+  printer: Flashforge Adventurer 5M
+  material: matte_black_PLA_or_PETG
+  layer_mm: 0.2
+  scale_percent: 100
+  faceplate_status: held_until_passives_pico_for_hole_dryfit
+  cover_status: first_article_accepted
+  badge_status: first_article_accepted
+
+gate_notes:
+  manifold_no_float: Faceplate is an open tray — manifold + no float; do NOT require closed-volume watertight.
+  faceplate_extents_z: Design body Z=28; golden STL bbox Z~34 includes feet. Gate body-only 28±1 or document feet_extra_z.

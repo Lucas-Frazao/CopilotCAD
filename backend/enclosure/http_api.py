@@ -21,7 +21,13 @@ from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
-from enclosure.service import EXPORT_FORMATS, PUBLIC_PARTS, export_part, generate_part, validate_part
+from enclosure.service import (
+    EXPORT_FORMATS,
+    PUBLIC_PARTS,
+    export_part,
+    generate_part,
+    validate_part,
+)
 
 DEFAULT_TOKEN = "local-dogfood"
 
@@ -61,21 +67,21 @@ class EnclosureHandler(BaseHTTPRequestHandler):
             token = self.headers.get("X-Bot-Token", "").strip()
         return bool(token) and secrets.compare_digest(token, expected)
 
-    def do_OPTIONS(self) -> None:  # noqa: N802 — http.server API
+    def do_OPTIONS(self) -> None:
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Headers", "Authorization, Content-Type, X-Bot-Token")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
         self.end_headers()
 
-    def do_GET(self) -> None:  # noqa: N802 — http.server API
+    def do_GET(self) -> None:
         path = urlparse(self.path).path
         if path in {"/health", "/v1/health"}:
             self._send(200, {"ok": True, "service": "copilotcad-enclosure", "auth": "bot-token"})
             return
         self._send(404, {"ok": False, "error": f"unknown path {path}"})
 
-    def do_POST(self) -> None:  # noqa: N802 — http.server API
+    def do_POST(self) -> None:
         if not self._authorized():
             self._unauthorized()
             return
@@ -105,7 +111,7 @@ class EnclosureHandler(BaseHTTPRequestHandler):
         except (ValueError, KeyError, FileNotFoundError) as exc:
             self._send(400, {"ok": False, "error": str(exc)})
             return
-        except Exception as exc:  # noqa: BLE001 — HTTP boundary
+        except Exception as exc:  # noqa: BLE001
             self._send(500, {"ok": False, "error": f"{type(exc).__name__}: {exc}"})
             return
 

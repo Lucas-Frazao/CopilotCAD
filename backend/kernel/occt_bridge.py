@@ -29,10 +29,10 @@ OCCT CONCEPTS FOR BEGINNERS
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Union
 
 # --- Open CASCADE imports (ONLY allowed in this file) ---
 from OCC.Core.Bnd import Bnd_Box  # Axis-aligned bounding box
+from OCC.Core.BRep import BRep_Tool  # Extract triangulation from faces
 from OCC.Core.BRepAdaptor import BRepAdaptor_Surface  # Surface type queries
 from OCC.Core.BRepAlgoAPI import BRepAlgoAPI_Cut, BRepAlgoAPI_Fuse  # Boolean ops
 from OCC.Core.BRepBndLib import brepbndlib  # Add shape to bounding box
@@ -44,10 +44,13 @@ from OCC.Core.BRepBuilderAPI import (
 )
 from OCC.Core.BRepCheck import BRepCheck_Analyzer
 from OCC.Core.BRepClass3d import BRepClass3d_SolidClassifier
-from OCC.Core.BRep import BRep_Tool  # Extract triangulation from faces
 from OCC.Core.BRepGProp import brepgprop
 from OCC.Core.BRepMesh import BRepMesh_IncrementalMesh  # Mesh generator
-from OCC.Core.BRepPrimAPI import BRepPrimAPI_MakeBox, BRepPrimAPI_MakeCylinder, BRepPrimAPI_MakePrism
+from OCC.Core.BRepPrimAPI import (
+    BRepPrimAPI_MakeBox,
+    BRepPrimAPI_MakeCylinder,
+    BRepPrimAPI_MakePrism,
+)
 from OCC.Core.GeomAbs import GeomAbs_Plane  # Enum: surface is a plane
 from OCC.Core.gp import gp_Ax2, gp_Dir, gp_Pnt, gp_Trsf, gp_Vec
 from OCC.Core.GProp import GProp_GProps
@@ -55,12 +58,19 @@ from OCC.Core.IFSelect import IFSelect_RetDone  # Success return code for reader
 from OCC.Core.IGESControl import IGESControl_Writer
 from OCC.Core.STEPControl import STEPControl_AsIs, STEPControl_Reader, STEPControl_Writer
 from OCC.Core.StlAPI import StlAPI_Writer
-from OCC.Core.TopAbs import TopAbs_FACE, TopAbs_IN, TopAbs_ON, TopAbs_OUT, TopAbs_SHELL, TopAbs_SOLID
+from OCC.Core.TopAbs import (
+    TopAbs_FACE,
+    TopAbs_IN,
+    TopAbs_ON,
+    TopAbs_OUT,
+    TopAbs_SHELL,
+    TopAbs_SOLID,
+)
 from OCC.Core.TopExp import TopExp_Explorer  # Iterate child shapes
 from OCC.Core.TopLoc import TopLoc_Location  # Placement transform on a shape
 from OCC.Core.TopoDS import TopoDS_Face, TopoDS_Shape, topods  # TopoDS types + casts
 
-PathLike = Union[str, Path]
+PathLike = str | Path
 
 # MVP only supports a subset of planes, directions, and modes — validated below
 SUPPORTED_PLANES = frozenset({"XY"})

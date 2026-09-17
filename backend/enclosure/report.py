@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
 
@@ -23,7 +23,7 @@ def build_report(
     passed = all(gate["passed"] for gate in scored)
     return {
         "schema": REPORT_SCHEMA,
-        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "generated_at": datetime.now(UTC).isoformat(),
         "project": spec.get("project"),
         "enclosure": spec.get("enclosure"),
         "spec_schema_version": spec.get("schema_version"),

@@ -93,7 +93,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parser.parse_args(argv)
     try:
         code = args.func(args)
-    except Exception as exc:  # noqa: BLE001 — CLI boundary
+    except Exception as exc:
         _print_json({"ok": False, "error": str(exc)})
         raise SystemExit(1) from exc
     raise SystemExit(code)

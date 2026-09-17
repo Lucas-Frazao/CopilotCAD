@@ -8,4 +8,4 @@ platform dogfood only.
 
 from enclosure.service import export_part, generate_part, validate_part
 
-__all__ = ["generate_part", "validate_part", "export_part"]
+__all__ = ["export_part", "generate_part", "validate_part"]

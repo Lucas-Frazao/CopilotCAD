@@ -42,5 +42,5 @@ def load_enclosure_spec(path: Path | str | None = None) -> dict[str, Any]:
         loaded = yaml.safe_load(text)
 
     if not isinstance(loaded, dict):
-        raise ValueError(f"Enclosure spec must be a mapping, got {type(loaded).__name__}")
+        raise TypeError(f"Enclosure spec must be a mapping, got {type(loaded).__name__}")
     return loaded
